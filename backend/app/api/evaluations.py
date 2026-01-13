@@ -119,7 +119,12 @@ async def list_evaluation_runs(
 
     query = query.offset(skip).limit(limit).order_by(EvaluationRun.timestamp.desc())
 
-    result = await db.execute(query)
+    result = await db.execute(
+        query.options(
+            selectinload(EvaluationRun.outputs)
+            .selectinload(EvaluationOutput.test_case)
+        )
+    )
     runs = result.scalars().all()
 
     # Get total count
@@ -148,6 +153,8 @@ async def get_evaluation_run(
             .selectinload(EvaluationOutput.evaluator_results),
             selectinload(EvaluationRun.outputs)
             .selectinload(EvaluationOutput.annotations),
+            selectinload(EvaluationRun.outputs)
+            .selectinload(EvaluationOutput.test_case),
         )
         .where(EvaluationRun.id == run_id)
     )

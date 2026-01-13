@@ -398,7 +398,15 @@ export default function Evaluations() {
                       {run.models.map((m) => m.model_id).join(', ')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {run.completed_count}/{run.test_case_count}
+                      <div>
+                        <span>{run.completed_count}/{run.test_case_count}</span>
+                        {run.test_case_titles && run.test_case_titles.length > 0 && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            {run.test_case_titles.slice(0, 2).join(', ')}
+                            {run.test_case_titles.length > 2 ? '…' : ''}
+                          </p>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       ${run.total_cost_usd?.toFixed(4) || '0.0000'}

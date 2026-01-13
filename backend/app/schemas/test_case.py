@@ -31,6 +31,7 @@ class StabilityParams(BaseModel):
 
 
 class TestCaseBase(BaseModel):
+    title: str | None = Field(None, description="Short, human-friendly test case title")
     prompt: str = Field(..., description="The prompt template to send to models")
     input: str = Field(..., description="The input/query to fill the prompt")
     expected_structure: dict[str, Any] | None = Field(None, description="JSON schema for expected output structure")
@@ -48,6 +49,7 @@ class TestCaseCreate(TestCaseBase):
 
 
 class TestCaseUpdate(BaseModel):
+    title: str | None = None
     prompt: str | None = None
     input: str | None = None
     expected_structure: dict[str, Any] | None = None

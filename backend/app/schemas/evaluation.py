@@ -31,6 +31,7 @@ class EvaluationRunResponse(BaseModel):
     test_case_count: int
     completed_count: int
     error_message: str | None
+    test_case_titles: list[str] = []
 
     class Config:
         from_attributes = True
@@ -51,6 +52,7 @@ class EvaluatorResultResponse(BaseModel):
 class EvaluationOutputResponse(BaseModel):
     id: UUID
     test_case_id: UUID
+    test_case_title: str | None = None
     model: str
     model_response: str | None
     latency_ms: int | None

@@ -38,6 +38,22 @@ class EvaluationRun(Base):
     def __repr__(self):
         return f"<EvaluationRun(id={self.id}, status={self.status})>"
 
+    @property
+    def test_case_titles(self):
+        titles = []
+        for output in self.outputs or []:
+            if output.test_case and output.test_case.title:
+                titles.append(output.test_case.title)
+        # Preserve order but remove duplicates
+        seen = set()
+        unique_titles = []
+        for title in titles:
+            if title in seen:
+                continue
+            seen.add(title)
+            unique_titles.append(title)
+        return unique_titles
+
 
 class EvaluationOutput(Base):
     __tablename__ = "evaluation_outputs"
@@ -62,9 +78,14 @@ class EvaluationOutput(Base):
     run = relationship("EvaluationRun", back_populates="outputs")
     evaluator_results = relationship("EvaluatorResult", back_populates="output", cascade="all, delete-orphan")
     annotations = relationship("HumanAnnotation", back_populates="output", cascade="all, delete-orphan")
+    test_case = relationship("TestCase")
 
     def __repr__(self):
         return f"<EvaluationOutput(id={self.id}, model={self.model})>"
+
+    @property
+    def test_case_title(self):
+        return self.test_case.title if self.test_case else None
 
 
 class EvaluatorResult(Base):

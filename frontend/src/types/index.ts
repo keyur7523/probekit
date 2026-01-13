@@ -1,5 +1,6 @@
 export interface TestCase {
   id: string
+  title?: string
   prompt: string
   input: string
   expected_structure?: Record<string, unknown>
@@ -10,6 +11,7 @@ export interface TestCase {
 }
 
 export interface TestCaseCreate {
+  title?: string
   prompt: string
   input: string
   expected_structure?: Record<string, unknown>
@@ -46,6 +48,7 @@ export interface EvaluatorResult {
 export interface EvaluationOutput {
   id: string
   test_case_id: string
+  test_case_title?: string | null
   model: string
   model_response: string | null
   latency_ms: number | null
@@ -83,6 +86,7 @@ export interface EvaluationRun {
   test_case_count: number
   completed_count: number
   error_message: string | null
+  test_case_titles?: string[]
   outputs?: EvaluationOutput[]
   comparison?: RunComparison | null
 }
@@ -121,4 +125,3 @@ export interface RegressionComparison {
   has_regression: boolean
   note?: string
 }
-

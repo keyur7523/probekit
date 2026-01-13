@@ -15,6 +15,7 @@ function TestCaseModal({
   initialData?: TestCase
 }) {
   const [formData, setFormData] = useState<TestCaseCreate>({
+    title: initialData?.title || '',
     prompt: initialData?.prompt || '',
     input: initialData?.input || '',
     expected_structure: initialData?.expected_structure,
@@ -38,6 +39,18 @@ function TestCaseModal({
             {initialData ? 'Edit Test Case' : 'Create Test Case'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Title (optional)
+              </label>
+              <input
+                type="text"
+                value={formData.title || ''}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                className="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
+                placeholder="Invoice extraction - strict JSON"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 System Prompt
@@ -226,9 +239,14 @@ export default function TestCases() {
                         {new Date(testCase.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">
-                      {testCase.prompt}
+                    <p className="text-sm font-medium text-gray-900 mb-1 line-clamp-1">
+                      {testCase.title || testCase.prompt}
                     </p>
+                    {!testCase.title && (
+                      <p className="text-xs text-gray-500 line-clamp-1">
+                        {testCase.prompt}
+                      </p>
+                    )}
                     <p className="text-sm text-gray-500 line-clamp-1">
                       Input: {testCase.input}
                     </p>

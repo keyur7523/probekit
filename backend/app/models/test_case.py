@@ -9,6 +9,7 @@ class TestCase(Base):
     __tablename__ = "test_cases"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    title = Column(String(200), nullable=True)
     prompt = Column(Text, nullable=False)
     input = Column(Text, nullable=False)
     expected_structure = Column(JSON, nullable=True)  # JSON schema for validation

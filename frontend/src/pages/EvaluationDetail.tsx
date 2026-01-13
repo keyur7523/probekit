@@ -423,7 +423,11 @@ export default function EvaluationDetail() {
         {Object.entries(outputsByTestCase).map(([testCaseId, outputs]) => (
           <div key={testCaseId}>
             <h3 className="text-sm font-medium text-gray-500 mb-3">
-              Test Case: {testCaseId.substring(0, 8)}...
+              {outputs[0]?.test_case_title ? (
+                <>Test Case: {outputs[0].test_case_title}</>
+              ) : (
+                <>Test Case: {testCaseId.substring(0, 8)}...</>
+              )}
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {outputs.map((output) => (

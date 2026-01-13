@@ -50,3 +50,7 @@ async def init_db():
             "ALTER TABLE IF EXISTS test_cases "
             "ADD COLUMN IF NOT EXISTS should_refuse BOOLEAN"
         ))
+        await conn.execute(text(
+            "ALTER TABLE IF EXISTS test_cases "
+            "ADD COLUMN IF NOT EXISTS title VARCHAR(200)"
+        ))
