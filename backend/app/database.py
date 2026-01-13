@@ -1,3 +1,4 @@
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import declarative_base
 from app.config import get_settings
@@ -32,3 +33,20 @@ async def init_db():
     """Create all tables. Use Alembic for migrations in production."""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Minimal schema sync for hosted environments without migration access.
+        await conn.execute(text(
+            "ALTER TABLE IF EXISTS test_cases "
+            "ADD COLUMN IF NOT EXISTS instruction_spec JSON"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE IF EXISTS test_cases "
+            "ADD COLUMN IF NOT EXISTS format_spec JSON"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE IF EXISTS test_cases "
+            "ADD COLUMN IF NOT EXISTS stability_params JSON"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE IF EXISTS test_cases "
+            "ADD COLUMN IF NOT EXISTS should_refuse BOOLEAN"
+        ))
