@@ -260,6 +260,3 @@ alembic upgrade head
 - **Frontend**: React 18, TypeScript, Vite, TanStack Query, Tailwind CSS, Recharts
 - **LLM Clients**: Anthropic SDK, OpenAI SDK, Ollama
 
-## License
-
-MIT
