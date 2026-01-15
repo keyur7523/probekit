@@ -1,20 +1,24 @@
 # Behavioral Eval
 
-An open-source framework for systematically measuring LLM behaviors across prompts and models.
+I built this open-source framework to systematically measure LLM behaviors across prompts and models. The core insight driving this project: **prompts are deployable software artifacts**—they should be tested and versioned like software, with clear metrics, regression detection, and rollback strategies.
 
-## Highlights
+## Why I Built This
 
-- Multi-model evaluation with cost/latency tracking
-- Pre-built evaluators: instruction adherence, hallucination, stability, refusal, format consistency
-- Human annotation UI + accuracy tracking
-- Regression detection with version comparison
-- Dashboard for trends, model comparison, evaluator performance
+The current state of prompt evaluation is immature. "Is this response good?" is subjective and doesn't scale. When you ship a prompt update and users complain, you often don't know why. I wanted a tool that answers: **How do I measure if my prompt change made things better, worse, or broke something?**
 
-## Quick Start (No Docker)
+## Features
+
+- **Multi-model evaluation** — Run the same prompt against Claude, GPT-4, and local models; track cost and latency
+- **Pre-built evaluators** — Instruction adherence, hallucination detection, output stability, refusal behavior, format consistency
+- **Human annotation UI** — Review outputs, add labels, track agreement between human and automated evaluations
+- **Regression detection** — Compare prompt versions, flag regressions automatically
+- **Dashboard** — Visualize trends, model comparison, evaluator performance over time
+
+## Quick Start
 
 ### 1. Start PostgreSQL
 
-Use your local Postgres instance and ensure you have a database named `probekit` (or update the `DATABASE_URL`).
+I use a local Postgres instance with a database named `probekit`. Update the `DATABASE_URL` in `.env` if yours differs.
 
 ### 2. Set up the backend
 
@@ -23,7 +27,7 @@ cd backend
 
 # Create virtual environment
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scriptsctivate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -39,7 +43,7 @@ cp .env.example .env
 uvicorn app.main:app --reload --port 8001
 ```
 
-The API will be available at http://localhost:8001
+API available at http://localhost:8001
 
 ### 4. Set up the frontend
 
@@ -49,63 +53,66 @@ npm install
 npm run dev
 ```
 
-The UI will be available at http://localhost:5173
+UI available at http://localhost:5173
 
-### 5. Seed sample test cases (optional)
+### 5. Seed sample data (optional)
 
 ```bash
+# Sample test cases
 python3 backend/scripts/seed_test_cases.py --api http://localhost:8001
-```
 
-### 6. Seed demo evaluation runs (optional)
-
-This creates completed runs, evaluator results, and a few annotations for dashboard demos:
-
-```bash
+# Demo evaluation runs with results
 python3 backend/scripts/seed_demo_runs.py
 ```
 
 ## API Endpoints
 
 ### Test Cases
-- `POST /api/test-cases` - Create a test case
-- `GET /api/test-cases` - List test cases
-- `GET /api/test-cases/{id}` - Get a test case
-- `PUT /api/test-cases/{id}` - Update a test case
-- `DELETE /api/test-cases/{id}` - Delete a test case
+- `POST /api/test-cases` — Create a test case
+- `GET /api/test-cases` — List test cases
+- `GET /api/test-cases/{id}` — Get a test case
+- `PUT /api/test-cases/{id}` — Update a test case
+- `DELETE /api/test-cases/{id}` — Delete a test case
 
 ### Evaluations
-- `POST /api/evaluations/run` - Start an evaluation run
-- `GET /api/evaluations/runs` - List evaluation runs
-- `GET /api/evaluations/runs/{id}` - Get evaluation run details
-- `GET /api/evaluations/results` - Get aggregated results
-- `POST /api/evaluations/runs/{id}/evaluate` - Run evaluators on a completed run
-- `GET /api/evaluations/evaluators` - List available evaluators
+- `POST /api/evaluations/run` — Start an evaluation run
+- `GET /api/evaluations/runs` — List evaluation runs
+- `GET /api/evaluations/runs/{id}` — Get evaluation run details
+- `GET /api/evaluations/results` — Get aggregated results
+- `POST /api/evaluations/runs/{id}/evaluate` — Run evaluators on a completed run
+- `GET /api/evaluations/evaluators` — List available evaluators
+
+### Conversations (Multi-turn)
+- `POST /api/conversations/run` — Start a multi-turn conversation run
+- `GET /api/conversations/runs` — List conversation runs
+- `GET /api/conversations/{run_id}` — Get conversation details with all turns
+- `GET /api/conversations/metrics` — Verbosity stability metrics
+- `GET /api/conversations/compare` — Compare conditions (baseline vs treatment)
 
 ### Annotations
-- `POST /api/annotations` - Create a human annotation
-- `GET /api/annotations` - List annotations (filter by output_id)
+- `POST /api/annotations` — Create a human annotation
+- `GET /api/annotations` — List annotations
 
-### Dashboard / Regressions
-- `GET /api/dashboard/metrics` - Overall metrics (includes p50/p99 latency)
-- `GET /api/dashboard/trends` - Evaluator pass-rate trends
-- `GET /api/dashboard/model-comparison` - Model comparison stats
-- `GET /api/dashboard/evaluator-breakdown` - Evaluator summary stats
-- `GET /api/dashboard/recent-activity` - Recent completed runs
-- `GET /api/dashboard/versions` - Latest run per prompt version
-- `GET /api/dashboard/compare` - Compare two versions and flag regressions
-- `GET /api/dashboard/regressions` - Latest regressions per version
-- `GET /api/dashboard/annotation-accuracy` - Human vs evaluator agreement
-- `GET /api/dashboard/refusal-stats` - Refusal FP/FN rates with examples
+### Dashboard
+- `GET /api/dashboard/metrics` — Overall metrics (includes p50/p99 latency)
+- `GET /api/dashboard/trends` — Evaluator pass-rate trends
+- `GET /api/dashboard/model-comparison` — Model comparison stats
+- `GET /api/dashboard/evaluator-breakdown` — Evaluator summary stats
+- `GET /api/dashboard/versions` — Latest run per prompt version
+- `GET /api/dashboard/compare` — Compare two versions and flag regressions
+- `GET /api/dashboard/regressions` — Latest regressions per version
+- `GET /api/dashboard/annotation-accuracy` — Human vs evaluator agreement
 
 ## Example Usage
 
 ### Create a test case
 
 ```bash
-curl -X POST http://localhost:8001/api/test-cases   -H "Content-Type: application/json"   -d '{
+curl -X POST http://localhost:8001/api/test-cases \
+  -H "Content-Type: application/json" \
+  -d '{
     "prompt": "Summarize the following text in 2-3 sentences.",
-    "input": "The quick brown fox jumps over the lazy dog. This pangram contains every letter of the alphabet.",
+    "input": "The quick brown fox jumps over the lazy dog.",
     "category": "summarization"
   }'
 ```
@@ -113,35 +120,35 @@ curl -X POST http://localhost:8001/api/test-cases   -H "Content-Type: applicatio
 ### Run an evaluation
 
 ```bash
-curl -X POST http://localhost:8001/api/evaluations/run   -H "Content-Type: application/json"   -d '{
+curl -X POST http://localhost:8001/api/evaluations/run \
+  -H "Content-Type: application/json" \
+  -d '{
     "prompt_version": "v1.0",
     "test_case_ids": ["<test-case-uuid>"],
     "models": [
-      {"model_id": "claude-3-5-sonnet-20241022", "temperature": 0.0, "max_tokens": 1000},
+      {"model_id": "claude-sonnet-4-20250514", "temperature": 0.0, "max_tokens": 1000},
       {"model_id": "gpt-4o", "temperature": 0.0, "max_tokens": 1000}
     ],
     "evaluators": ["instruction_adherence", "hallucination", "format_consistency"]
   }'
 ```
 
-## Database Migrations
-
-The project uses Alembic for database migrations.
+### Run a multi-turn conversation
 
 ```bash
-cd backend
-
-# Show current revision
-alembic current
-
-# Generate a new migration after model changes
-alembic revision --autogenerate -m "description"
-
-# Apply all pending migrations
-alembic upgrade head
-
-# Rollback one migration
-alembic downgrade -1
+curl -X POST http://localhost:8001/api/conversations/run \
+  -H "Content-Type: application/json" \
+  -d '{
+    "condition": "baseline",
+    "model": {"model_id": "claude-sonnet-4-20250514", "temperature": 0.2, "max_tokens": 512},
+    "turns": [
+      "Explain what a hash table is.",
+      "Give an everyday example.",
+      "What is one tradeoff?"
+    ],
+    "system_prompt": "You are a concise assistant.",
+    "intent_id": "concept_explanation"
+  }'
 ```
 
 ## Project Structure
@@ -160,24 +167,23 @@ probekit/
 │   │   ├── config.py     # Settings
 │   │   ├── database.py   # DB connection
 │   │   └── main.py       # FastAPI app
-│   ├── sample_data/      # Sample test cases
-│   ├── scripts/          # Helper scripts
-│   └── requirements.txt
+│   ├── scripts/          # Seed scripts, utilities
+│   └── tests/            # pytest tests
 ├── frontend/
 │   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── api/
-│   │   └── types/
+│   │   ├── components/   # React components
+│   │   ├── pages/        # Route pages
+│   │   ├── api/          # API client
+│   │   └── types/        # TypeScript types
 │   └── package.json
-└── README.md
+└── artifacts/            # Conversation run outputs (gitignored)
 ```
 
 ## Supported Models
 
 ### Claude (Anthropic)
-- claude-3-5-sonnet-20241022
-- claude-3-opus-20240229
+- claude-sonnet-4-20250514
+- claude-opus-4-20250514
 - claude-3-5-haiku-20241022
 
 ### OpenAI
@@ -186,81 +192,74 @@ probekit/
 - gpt-4-turbo
 
 ### Local (via Ollama)
-- llama3.1
-- mistral
-- Any other Ollama-supported model
+- llama3.1, mistral, or any Ollama-supported model
 
+## Evaluators
 
-## Evaluator Customization
+I built five core evaluators based on what matters for production prompts:
 
-You can add new evaluators or configure existing ones by editing the backend.
+| Evaluator | What It Measures |
+|-----------|------------------|
+| **Instruction Adherence** | Does output follow constraints? (JSON validity, required fields, length limits, forbidden terms) |
+| **Hallucination Detection** | Are claims grounded in provided context? Uses LLM-as-judge to verify factual claims |
+| **Output Stability** | Is output consistent across re-runs? Measures semantic similarity via Jaccard |
+| **Refusal Behavior** | Does model refuse appropriately? Classifies responses as refusal/abstention/clarification/answer |
+| **Format Consistency** | Does output match expected format? Validates JSON schema, markdown structure, regex patterns |
+| **Verbosity Stability** | (Conversations) Does response length drift over turns? Measures drift slope, growth ratio |
 
-### Configure built-in evaluators
-
-The evaluators are defined in `backend/app/evaluators/` and registered in `backend/app/evaluators/__init__.py`.
-
-Examples:
-
-- **Instruction adherence**: Uses JSON validity + required fields. If `expected_structure` includes `required`, it will enforce those fields.
-- **Format consistency**: Validates JSON schema constraints like `minLength`, `maxLength`, `enum`, `minimum`, `maximum`, and `additionalProperties: false`.
-- **Refusal behavior**: If the test case `category` includes `safety`, `refusal`, or `policy`, it expects refusal/abstention.
-- **Output stability**: Re-samples the same prompt at multiple temperatures and computes consistency.
-
-### Add a custom evaluator
-
-1) Create a new evaluator class:
+### Adding a Custom Evaluator
 
 ```python
-# backend/app/evaluators/length_guard.py
+# backend/app/evaluators/my_evaluator.py
 from app.evaluators.base import BaseEvaluator, EvaluationContext, EvaluatorOutput
 
-class LengthGuardEvaluator(BaseEvaluator):
-    name = "length_guard"
-    description = "Checks output length bounds"
-
-    def __init__(self, min_len: int = 10, max_len: int = 200):
-        self.min_len = min_len
-        self.max_len = max_len
+class MyEvaluator(BaseEvaluator):
+    name = "my_evaluator"
+    description = "What this evaluator checks"
 
     async def evaluate(self, context: EvaluationContext) -> EvaluatorOutput:
-        length = len(context.output)
-        passed = self.min_len <= length <= self.max_len
+        output = context.output
+        passed = len(output) < 500  # Example check
         return EvaluatorOutput(
             evaluator_name=self.name,
             passed=passed,
             score=1.0 if passed else 0.0,
-            details={"length": length, "min": self.min_len, "max": self.max_len},
-            reasoning="Within bounds" if passed else "Out of bounds",
+            details={"length": len(output)},
+            reasoning="Output length check",
         )
 ```
 
-2) Register it:
+Register it in `backend/app/evaluators/__init__.py`:
 
 ```python
-# backend/app/evaluators/__init__.py
-from app.evaluators.length_guard import LengthGuardEvaluator
+from app.evaluators.my_evaluator import MyEvaluator
 
 EVALUATOR_REGISTRY = {
-    # ...existing evaluators
-    "length_guard": LengthGuardEvaluator,
+    # ...existing
+    "my_evaluator": MyEvaluator,
 }
 ```
 
-3) Run it via API:
+## Database Migrations
+
+I use Alembic for migrations. For hosted environments without shell access (like Render free tier), tables are created automatically on app startup via `Base.metadata.create_all`.
 
 ```bash
-curl -X POST http://localhost:8001/api/evaluations/runs/<run-id>/evaluate   -H "Content-Type: application/json"   -d ''   "?evaluators=length_guard"
+cd backend
+
+# Generate migration after model changes
+alembic revision --autogenerate -m "description"
+
+# Apply migrations
+alembic upgrade head
 ```
 
-### Configure evaluators per run
+## Tech Stack
 
-You can specify evaluator names when starting a run:
+- **Backend**: Python 3.11+, FastAPI, SQLAlchemy 2.x (async), Pydantic v2, PostgreSQL
+- **Frontend**: React 18, TypeScript, Vite, TanStack Query, Tailwind CSS, Recharts
+- **LLM Clients**: Anthropic SDK, OpenAI SDK, Ollama
 
-```bash
-curl -X POST http://localhost:8001/api/evaluations/run   -H "Content-Type: application/json"   -d '{
-    "prompt_version": "v1.0",
-    "test_case_ids": ["<test-case-uuid>"],
-    "models": [{"model_id": "gpt-4o", "temperature": 0.0, "max_tokens": 512}],
-    "evaluators": ["instruction_adherence", "format_consistency", "length_guard"]
-  }'
-```
+## License
+
+MIT

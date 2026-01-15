@@ -6,6 +6,11 @@ from app.schemas.evaluation import (
     ModelConfig,
 )
 from app.schemas.common import StatusEnum
+from app.schemas.conversation import (
+    ConversationRunCreate,
+    ConversationRunResponse,
+    ConversationRunDetailResponse,
+)
 
 __all__ = [
     "TestCaseCreate",
@@ -16,4 +21,7 @@ __all__ = [
     "EvaluationOutputResponse",
     "ModelConfig",
     "StatusEnum",
+    "ConversationRunCreate",
+    "ConversationRunResponse",
+    "ConversationRunDetailResponse",
 ]

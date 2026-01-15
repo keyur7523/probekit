@@ -66,7 +66,7 @@ class EvaluationOutput(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     run_id = Column(UUID(as_uuid=True), ForeignKey("evaluation_runs.id"), nullable=False)
     test_case_id = Column(UUID(as_uuid=True), ForeignKey("test_cases.id"), nullable=False)
-    model = Column(String(100), nullable=False)  # e.g., "claude-3-5-sonnet-20241022"
+    model = Column(String(100), nullable=False)  # e.g., "claude-sonnet-4-20250514"
     model_response = Column(Text, nullable=True)
     latency_ms = Column(Integer, nullable=True)
     input_tokens = Column(Integer, nullable=True)

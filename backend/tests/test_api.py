@@ -258,7 +258,52 @@ class TestAnnotationsAPI:
         assert response.status_code == 200
         data = response.json()
         assert data["annotations"] == []
+
+
+class TestConversationsAPI:
+    """Tests for conversation endpoints."""
+
+    async def test_list_conversation_runs_empty(self, client: AsyncClient):
+        response = await client.get("/api/conversations/runs")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["runs"] == []
         assert data["total"] == 0
+
+    async def test_list_conversation_metrics_empty(self, client: AsyncClient):
+        response = await client.get("/api/conversations/metrics")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["runs"] == []
+
+    async def test_start_conversation_no_turns(self, client: AsyncClient):
+        response = await client.post("/api/conversations/run", json={
+            "condition": "baseline",
+            "model": {"model_id": "claude-sonnet-4-20250514", "temperature": 0.0, "max_tokens": 100},
+            "turns": [],
+        })
+        assert response.status_code == 400
+        assert "turns" in response.json()["detail"].lower()
+
+    async def test_conversation_requires_exactly_12_turns(self, client: AsyncClient):
+        payload = {
+            "condition": "baseline",
+            "model": {"model_id": "claude-sonnet-4-20250514", "temperature": 0.2, "max_tokens": 256},
+            "turns": [f"Turn {i}" for i in range(11)],
+        }
+        response = await client.post("/api/conversations/run", json=payload)
+        assert response.status_code == 400
+        assert "exactly 12 turns" in response.json()["detail"]
+
+    async def test_conversation_rejects_disallowed_model(self, client: AsyncClient):
+        payload = {
+            "condition": "baseline",
+            "model": {"model_id": "gpt-4o", "temperature": 0.2, "max_tokens": 256},
+            "turns": [f"Turn {i}" for i in range(12)],
+        }
+        response = await client.post("/api/conversations/run", json=payload)
+        assert response.status_code == 400
+        assert "not allowed" in response.json()["detail"]
 
     async def test_create_annotation_invalid_output(self, client: AsyncClient):
         """Test creating annotation for non-existent output fails."""

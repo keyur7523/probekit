@@ -8,7 +8,7 @@ from app.schemas.annotation import HumanAnnotationResponse
 
 class ModelConfig(BaseModel):
     """Configuration for a specific model in an evaluation run."""
-    model_id: str = Field(..., description="Model identifier (e.g., 'claude-3-5-sonnet-20241022')")
+    model_id: str = Field(..., description="Model identifier (e.g., 'claude-sonnet-4-20250514')")
     temperature: float = Field(0.0, ge=0.0, le=2.0)
     max_tokens: int = Field(4096, ge=1, le=100000)
 

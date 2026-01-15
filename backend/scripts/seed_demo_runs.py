@@ -65,7 +65,7 @@ async def _seed() -> None:
 
         models = [
             {"model_id": "gpt-4o", "temperature": 0.0, "max_tokens": 512},
-            {"model_id": "claude-3-5-sonnet-20241022", "temperature": 0.0, "max_tokens": 512},
+            {"model_id": "claude-sonnet-4-20250514", "temperature": 0.0, "max_tokens": 512},
         ]
         evaluators = [
             "instruction_adherence",

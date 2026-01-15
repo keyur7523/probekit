@@ -5,6 +5,21 @@ from app.config import get_settings
 
 settings = get_settings()
 
+# Import all models so Base.metadata.create_all() creates them
+# This is used for environments without Alembic shell access (e.g., Render free tier)
+def _import_models():
+    from app.models import (  # noqa: F401
+        TestCase,
+        EvaluationRun,
+        EvaluationOutput,
+        EvaluatorResult,
+        HumanAnnotation,
+        ConversationRun,
+        ConversationTurn,
+        TurnEvaluatorResult,
+        ConversationEvaluatorResult,
+    )
+
 engine = create_async_engine(
     settings.database_url,
     echo=settings.debug,
@@ -31,6 +46,7 @@ async def get_db() -> AsyncSession:
 
 async def init_db():
     """Create all tables. Use Alembic for migrations in production."""
+    _import_models()  # Ensure all models are registered with Base.metadata
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         # Minimal schema sync for hosted environments without migration access.
@@ -53,4 +69,12 @@ async def init_db():
         await conn.execute(text(
             "ALTER TABLE IF EXISTS test_cases "
             "ADD COLUMN IF NOT EXISTS title VARCHAR(200)"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE IF EXISTS conversation_turns "
+            "ADD COLUMN IF NOT EXISTS condition VARCHAR(50)"
+        ))
+        await conn.execute(text(
+            "ALTER TABLE IF EXISTS conversation_turns "
+            "ADD COLUMN IF NOT EXISTS model_id VARCHAR(100)"
         ))

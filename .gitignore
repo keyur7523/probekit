@@ -54,3 +54,6 @@ Thumbs.db
 
 # Alembic
 alembic/versions/*.pyc
+
+# Conversation run artifacts (generated at runtime)
+artifacts/

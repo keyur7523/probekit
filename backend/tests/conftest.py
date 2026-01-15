@@ -90,7 +90,7 @@ def mock_claude_client(mock_llm_response):
     client = AsyncMock()
     client.generate = AsyncMock(return_value=mock_llm_response())
     client.calculate_cost = MagicMock(return_value=0.001)
-    client.model_id = "claude-3-5-sonnet-20241022"
+    client.model_id = "claude-sonnet-4-20250514"
     return client
 
 
