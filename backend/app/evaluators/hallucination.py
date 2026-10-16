@@ -7,37 +7,51 @@ class HallucinationEvaluator(BaseEvaluator):
     Evaluates if model output contains hallucinations (claims not grounded in context).
 
     Uses an LLM to:
-    1. Extract factual claims from the response
-    2. Check each claim against the provided context
-    3. Flag ungrounded claims as hallucinations
+    1. Extract claims from the response (given the question), including inferred conclusions,
+       evaluations, motives and statements about what the document does or doesn't say
+    2. Check each claim against the provided context, with the question for reference
+    3. Flag unsupported or partly supported claims as hallucinations
     """
 
     name = "hallucination"
     description = "LLM-judged: two-step claim extraction and verification against the provided context"
 
-    EXTRACTION_PROMPT = """Analyze the following response and extract all factual claims made.
-A factual claim is any statement that asserts something as true or false about the world.
+    EXTRACTION_PROMPT = """You are listing the claims a response makes so that each one can be checked against a source document.
 
-Response to analyze:
+Question the response answers:
+{question}
+
+Response:
 {response}
 
-List each factual claim on a new line, numbered. Only include explicit claims, not opinions or hedged statements.
-If there are no factual claims, respond with "NO CLAIMS".
+List every claim the response makes, one per line, numbered. A claim is anything a reader could take as information, including:
+- facts such as names, numbers, dates and events;
+- statements about what the source does or does not say (for example "The document does not state the build cost");
+- inferred conclusions, evaluations and characterisations (for example "this shows strong investor confidence" or "it was a successful season");
+- causes, motives and purposes (for example "the closure is needed to ensure safety");
+- hedged statements that still assert specific content (for example "it was likely made by an indie studio").
+
+Do not list generic advice about where to find information (for example "check the official website"), or speculation that is explicitly marked as such and adds no specific content.
+
+Write each claim as a self-contained sentence. If the response makes no claims, respond with "NO CLAIMS".
 
 Claims:"""
 
-    VERIFICATION_PROMPT = """You are a fact-checker. Determine if each claim is supported by the provided context.
+    VERIFICATION_PROMPT = """You are a fact-checker. Decide whether each claim is supported by the source document. The document is the only source of truth: ignore general knowledge, even when a claim is true in the real world.
 
-Context (source of truth):
+Question that was asked:
+{question}
+
+Document:
 {context}
 
 Claims to verify:
 {claims}
 
-For each claim, respond with:
-- SUPPORTED: if the claim is directly supported by the context
-- NOT SUPPORTED: if the claim contradicts or is not mentioned in the context
-- PARTIALLY SUPPORTED: if only part of the claim is supported
+For each claim, decide:
+- SUPPORTED: the document states it, or it follows directly and unavoidably from what the document states. A claim that the document does not contain some information is SUPPORTED when the document indeed does not contain it.
+- NOT SUPPORTED: the document doesn't state it or contradicts it, including inferences, evaluations, causes and motives that the document doesn't itself give. A claim that the document lacks information it actually contains is NOT SUPPORTED.
+- PARTIALLY SUPPORTED: part of the claim is stated in the document and part is not.
 
 Format your response as:
 1. [SUPPORTED/NOT SUPPORTED/PARTIALLY SUPPORTED] - Brief explanation
@@ -67,7 +81,7 @@ Verification:"""
 
         # Step 1: Extract claims from the response
         extraction_response = await self.client.generate(
-            prompt=self.EXTRACTION_PROMPT.format(response=context.output),
+            prompt=self.EXTRACTION_PROMPT.format(question=context.input_text, response=context.output),
             temperature=0.0,
             max_tokens=4000,
             effort=self.JUDGE_EFFORT,
@@ -87,6 +101,7 @@ Verification:"""
         # Step 2: Verify claims against context
         verification_response = await self.client.generate(
             prompt=self.VERIFICATION_PROMPT.format(
+                question=context.input_text,
                 context=context.context,
                 claims=claims_text,
             ),
@@ -125,7 +140,8 @@ Verification:"""
             # Score: 1.0 if all supported, 0.0 if all hallucinated
             score = (supported + 0.5 * partially_supported) / total_claims
 
-        passed = not_supported == 0
+        # Any unsupported content counts as a hallucination, including partly supported claims
+        passed = not_supported == 0 and partially_supported == 0
 
         return EvaluatorOutput(
             evaluator_name=self.name,
@@ -139,5 +155,8 @@ Verification:"""
                 "hallucinations": hallucinations,
                 "claims_text": claims_text,
             },
-            reasoning=f"{not_supported} hallucinated claims found" if not_supported > 0 else "All claims grounded in context",
+            reasoning=(
+                f"{not_supported} unsupported and {partially_supported} partly supported claims found"
+                if not passed else "All claims grounded in context"
+            ),
         )

@@ -564,3 +564,47 @@ class TestNotApplicableVerdicts:
         result = await evaluator.evaluate(evaluation_context_factory(output="I don't know."))
         assert result.passed is None
         assert result.details["classification"] == "abstention"
+
+
+class TestHallucinationJudgeInputs:
+    """The judge must see the question, and partly supported claims count as hallucinations."""
+
+    def _evaluator(self, extraction: str, verification: str):
+        from types import SimpleNamespace
+        evaluator = HallucinationEvaluator.__new__(HallucinationEvaluator)
+        evaluator.client = AsyncMock()
+        evaluator.client.generate = AsyncMock(side_effect=[
+            SimpleNamespace(content=extraction), SimpleNamespace(content=verification),
+        ])
+        return evaluator
+
+    async def test_question_is_sent_to_both_steps(self):
+        evaluator = self._evaluator(
+            "1. The document does not state the build cost.",
+            "1. [SUPPORTED] - The document gives no build cost.",
+        )
+        context = EvaluationContext(
+            output="The document does not contain the answer.",
+            prompt="Answer from the document.",
+            input_text="Question: How much did the Merrow Lark cost to build?",
+            context="The Merrow Lark entered service in May.",
+        )
+        result = await evaluator.evaluate(context)
+
+        prompts = [call.kwargs["prompt"] for call in evaluator.client.generate.call_args_list]
+        assert all("How much did the Merrow Lark cost to build?" in prompt for prompt in prompts)
+        assert "The Merrow Lark entered service in May." in prompts[1]
+        assert result.passed is True
+
+    async def test_partly_supported_claim_fails(self):
+        evaluator = self._evaluator(
+            "1. The cooperative is certified organic and gets premium prices.",
+            "1. [PARTIALLY SUPPORTED] - Certification is stated; prices are not.",
+        )
+        context = EvaluationContext(
+            output="It is organic and likely gets premium prices.",
+            prompt="p", input_text="Question: What price per kilo?", context="Certified organic in 2022.",
+        )
+        result = await evaluator.evaluate(context)
+        assert result.passed is False
+        assert result.details["partially_supported"] == 1
