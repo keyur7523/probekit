@@ -225,14 +225,18 @@ I checked the LLM-judged hallucination evaluator against blind human labels on 8
 unanswerable, under strict and open prompts. Full design and per-item data:
 [docs/hallucination-study.md](docs/hallucination-study.md).
 
-| n | Raw agreement (95% CI) | Cohen's κ | Hallucinations caught |
-|---|---|---|---|
-| 80 (19 hallucinated) | 73.8% (63.2–82.1%) | 0.23 | 7 of 19 |
+| Judge | n (hallucinated) | Raw agreement (95% CI) | Cohen's κ | Caught | False alarms |
+|---|---|---|---|---|---|
+| v1 (as first built) | 80 (19) | 73.8% (63.2–82.1%) | 0.23 | 7 of 19 | 9 of 61 |
+| v2 (after fixes) | 80 (19) | 85.0% (75.6–91.2%) | 0.66 | 19 of 19 | 12 of 61 |
 
-The judge is weak as built, and the study shows why: it is never shown the question, so it
-can't verify correct "the document doesn't say" answers. It also skips inferred conclusions and
-hedged claims, which is where `gpt-4o-mini` actually hallucinates. (Claude Haiku 4.5, tried
-first, declined to invent details on all 40 unanswerable questions.)
+The first version was weak, and the study showed why. The judge was never shown the question,
+so it couldn't verify correct "the document doesn't say" answers. It also skipped inferred
+conclusions and hedged claims, which is where `gpt-4o-mini` actually hallucinates. (Claude
+Haiku 4.5, tried first, declined to invent details on all 40 unanswerable questions.) v2 fixes
+both flaws and now catches every labeled hallucination, but it is somewhat over-strict. Its
+numbers come from the same 80 items used to find the flaws, so they're optimistic until checked
+on fresh labels.
 
 ### Adding a Custom Evaluator
 

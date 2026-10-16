@@ -124,3 +124,39 @@ human labels in `study/hallucination_labels.json`, labels and judge verdicts in 
 Patterns 1 and 2 are design flaws in the evaluator, not judgment noise. Fixing them and
 re-scoring these same 80 outputs would give an optimistic estimate, because the fixes were
 chosen after seeing these disagreements. An unbiased number needs fresh labels.
+
+## Results — v2 judge, re-scored on the same 80 outputs
+
+Commit `3887004` fixed the two design flaws: the judge now sees the question, and extraction
+includes inferred, evaluative, causal and hedged-but-specific claims, matching the labeling
+rules. Partly supported claims now fail the check. Same outputs, same human labels; per-item
+data in `study/results_v2.json`.
+
+| Judge | Raw agreement (95% CI) | Cohen's κ | Hallucinations caught | False alarms |
+|---|---|---|---|---|
+| v1 | 73.8% (63.2–82.1%) | 0.23 | 7 of 19 | 9 of 61 |
+| **v2** | **85.0% (75.6–91.2%)** | **0.66** | **19 of 19** | 12 of 61 |
+
+**This is not an unbiased estimate.** The fixes were designed after reading the v1
+disagreements on these same 80 items. They follow the labeling rules, which were written before
+the judge ran, but a clean number needs freshly labeled outputs.
+
+What changed: all 12 v1 misses are now caught, and the 8 false alarms on correct "the document
+doesn't contain the answer" responses are gone. v2 is now too strict:
+- 6 of its 12 false alarms come only from "partially supported" verdicts on faithful paraphrases,
+  such as "improved accessibility" for "step-free access" or "mission objectives" for "maps soil
+  moisture".
+- Others are mild evaluative words ("notable items", "a significant contribution", "this is
+  significant"), a hedged causal remark ("likely contributed to the improvement"), an
+  over-literal reading (HS-03a, "cited the loss" read as Ames's claim, not a fact), and generic
+  knowledge (HS-39b).
+
+**Sensitivity check, not adopted:** if partly supported claims didn't fail the check, v2 would
+score 90.0% (81.5–94.8%), κ = 0.75, catching 18 of 19 with 7 false alarms. That rule was picked
+after seeing these results, so it isn't reported as the result.
+
+**Label consistency:** mild evaluative language wasn't labeled consistently. "A notable
+improvement" (HS-04a) and "a successful season" (HS-12a, marked unsure) were labeled
+hallucinated, while "notable items" (HS-08a) and "a significant contribution" (HS-37b) were
+labeled faithful. Labels were not changed after seeing judge verdicts. A second labeler, or
+re-labeling a subset a few days later, would measure this noise directly.
