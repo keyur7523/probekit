@@ -7,6 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models import EvaluationRun, EvaluationOutput, EvaluatorResult, RunStatus, TestCase, HumanAnnotation
+from app.services.agreement import ConfusionMatrix, normalize_label, summarize as summarize_agreement
 
 router = APIRouter()
 
@@ -271,68 +272,60 @@ async def get_annotation_accuracy(
             .where(EvaluationRun.is_demo.is_(False))
         )
     result = await db.execute(query)
-    rows = result.all()
 
-    def normalize_label(label: str) -> bool | None:
-        if not label:
-            return None
-        value = label.strip().lower()
-        true_labels = {'correct', 'pass', 'passed', 'yes', 'true', 'ok'}
-        false_labels = {'incorrect', 'fail', 'failed', 'no', 'false', 'hallucinated'}
-        if value in true_labels:
-            return True
-        if value in false_labels:
-            return False
-        return None
+    # One item per (output, evaluator): the latest evaluator verdict (evaluators can be
+    # re-run) paired with the latest human label for that output.
+    latest_annotation: dict[tuple, HumanAnnotation] = {}
+    latest_result: dict[tuple, EvaluatorResult] = {}
+    for annotation, auto_result in result.all():
+        key = (annotation.output_id, auto_result.evaluator_name)
+        current = latest_annotation.get(key)
+        if current is None or (annotation.created_at or datetime.min) > (current.created_at or datetime.min):
+            latest_annotation[key] = annotation
+        current = latest_result.get(key)
+        if current is None or (auto_result.created_at or datetime.min) > (current.created_at or datetime.min):
+            latest_result[key] = auto_result
 
-    stats: dict[str, dict[str, int]] = defaultdict(lambda: {
-        'total': 0,
-        'matched': 0,
-        'agreed': 0,
-        'human_true': 0,
-        'human_false': 0,
-        'auto_true': 0,
-        'auto_false': 0,
-    })
+    matrices: dict[str, ConfusionMatrix] = {}
+    skipped_labels: dict[str, int] = defaultdict(int)
+    skipped_unscored: dict[str, int] = defaultdict(int)
+    unrecognized: set[str] = set()
 
-    for annotation, auto_result in rows:
+    for key, annotation in latest_annotation.items():
+        evaluator_name = key[1]
+        # Every evaluator with annotations gets a row, even if n == 0
+        matrix = matrices.setdefault(evaluator_name, ConfusionMatrix())
         human_value = normalize_label(annotation.label)
         if human_value is None:
+            skipped_labels[evaluator_name] += 1
+            unrecognized.add(annotation.label)
             continue
-        entry = stats[auto_result.evaluator_name]
-        entry['total'] += 1
-        entry['matched'] += 1
-        if human_value:
-            entry['human_true'] += 1
-        else:
-            entry['human_false'] += 1
-        if auto_result.passed is True:
-            entry['auto_true'] += 1
-        elif auto_result.passed is False:
-            entry['auto_false'] += 1
-        if auto_result.passed == human_value:
-            entry['agreed'] += 1
+        auto_passed = latest_result[key].passed
+        if auto_passed is None:
+            skipped_unscored[evaluator_name] += 1
+            continue
+        matrix.add(human_value, auto_passed)
 
     data = []
-    for evaluator_name, entry in stats.items():
-        total = entry['total']
-        accuracy = round((entry['agreed'] / total) * 100, 1) if total else 0.0
+    for evaluator_name, matrix in matrices.items():
         data.append({
             'evaluator_name': evaluator_name,
-            'total': total,
-            'agreed': entry['agreed'],
-            'accuracy': accuracy,
-            'human_true': entry['human_true'],
-            'human_false': entry['human_false'],
-            'auto_true': entry['auto_true'],
-            'auto_false': entry['auto_false'],
+            **summarize_agreement(matrix),
+            'skipped_labels': skipped_labels[evaluator_name],
+            'skipped_unscored': skipped_unscored[evaluator_name],
         })
 
-    data.sort(key=lambda item: item['accuracy'], reverse=True)
+    data.sort(key=lambda item: (item['agreement'] is None, -(item['agreement'] or 0)))
     return {
         'data': data,
-        'total_annotations': sum(item['total'] for item in data),
-        'note': 'Labels must be one of: correct/incorrect, pass/fail, yes/no, true/false, ok, hallucinated.'
+        'total_annotations': sum(item['n'] for item in data),
+        'skipped_labels': sum(skipped_labels.values()),
+        'unrecognized_labels': sorted(unrecognized),
+        'note': (
+            'Human labels map to pass (correct/pass/yes/true/ok/faithful/grounded) or fail '
+            '(incorrect/fail/no/false/hallucinated/unfaithful); other labels are counted in '
+            'skipped_labels. Agreement CI is a 95% Wilson interval.'
+        ),
     }
 
 

@@ -352,18 +352,28 @@ export interface RegressionsResponse {
 
 export default api
 
+export interface AnnotationAgreement {
+  evaluator_name: string
+  n: number
+  agreed: number
+  agreement: number | null
+  agreement_ci_95: { low: number; high: number } | null
+  kappa: number | null
+  confusion_matrix: {
+    human_pass_auto_pass: number
+    human_pass_auto_fail: number
+    human_fail_auto_pass: number
+    human_fail_auto_fail: number
+  }
+  skipped_labels: number
+  skipped_unscored: number
+}
+
 export interface AnnotationAccuracyResponse {
-  data: Array<{
-    evaluator_name: string
-    total: number
-    agreed: number
-    accuracy: number
-    human_true: number
-    human_false: number
-    auto_true: number
-    auto_false: number
-  }>
+  data: AnnotationAgreement[]
   total_annotations: number
+  skipped_labels: number
+  unrecognized_labels: string[]
   note?: string
 }
 

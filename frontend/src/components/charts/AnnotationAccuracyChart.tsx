@@ -11,7 +11,8 @@ import {
 
 interface AnnotationAccuracyDatum {
   evaluator_name: string
-  accuracy: number
+  agreement: number | null
+  n: number
 }
 
 interface AnnotationAccuracyChartProps {
@@ -33,14 +34,15 @@ function prettyName(name: string): string {
 
 export default function AnnotationAccuracyChart({
   data,
-  title = 'Annotation Accuracy',
+  title = 'Annotation Agreement',
 }: AnnotationAccuracyChartProps) {
-  if (!data || data.length === 0) {
+  data = (data || []).filter((d) => d.agreement !== null)
+  if (data.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
         <div className="h-56 flex items-center justify-center text-gray-500">
-          No annotation accuracy data available yet.
+          No scored annotations yet.
         </div>
       </div>
     )
@@ -73,10 +75,10 @@ export default function AnnotationAccuracyChart({
                 borderRadius: '8px',
                 fontSize: '12px',
               }}
-              formatter={(value: number) => [`${value}%`, 'Accuracy']}
+              formatter={(value: number, _name, item) => [`${value}% (n=${item.payload.n})`, 'Raw agreement']}
               labelFormatter={(label) => prettyName(label)}
             />
-            <Bar dataKey="accuracy" radius={[4, 4, 0, 0]}>
+            <Bar dataKey="agreement" radius={[4, 4, 0, 0]}>
               {data.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}

@@ -11,8 +11,8 @@ The current state of prompt evaluation is immature. "Is this response good?" is 
 - **Multi-model evaluation** — Run the same prompt against Claude, GPT-4, and local models; track cost and latency
 - **Pre-built evaluators** — Rule-based instruction adherence, format, and refusal checks; an LLM-judged hallucination check; lexical output stability (see [Evaluators](#evaluators))
 - **Human annotation workflow** — label model outputs and compare each automatic
-  evaluator's verdict against human labels (raw percent agreement and sample size
-  per evaluator; chance-corrected agreement is planned).
+  evaluator's verdict against human labels (agreement, Cohen's kappa, confusion
+  matrix, and sample size per evaluator).
 - **Regression detection** — Compare prompt versions, flag regressions automatically
 - **Dashboard** — Visualize trends, model comparison, evaluator performance over time
 
@@ -108,7 +108,7 @@ python3 backend/scripts/seed_demo_runs.py
 - `GET /api/dashboard/versions` — Latest run per prompt version
 - `GET /api/dashboard/compare` — Compare two versions and flag regressions
 - `GET /api/dashboard/regressions` — Latest regressions per version (demo runs excluded; `?include_demo=true` to opt in)
-- `GET /api/dashboard/annotation-accuracy` — Human vs evaluator agreement (demo runs excluded; `?include_demo=true` to opt in)
+- `GET /api/dashboard/annotation-accuracy` — Human vs evaluator agreement per evaluator: n, raw agreement with 95% Wilson interval, Cohen's kappa, confusion matrix, and counts of skipped (unrecognized or unscored) labels (demo runs excluded; `?include_demo=true` to opt in)
 
 ## Example Usage
 

@@ -183,31 +183,51 @@ export default function Dashboard() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Annotation Accuracy</h2>
-            <p className="text-xs text-gray-500">Agreement between human labels and evaluator results.</p>
+            <h2 className="text-lg font-semibold text-gray-900">Human–Evaluator Agreement</h2>
+            <p className="text-xs text-gray-500">
+              Raw agreement with 95% Wilson interval, and Cohen's κ (agreement beyond chance).
+            </p>
           </div>
         </div>
         <div className="divide-y divide-gray-200">
           {!annotationAccuracy?.data?.length ? (
-            <div className="p-6 text-center text-gray-500">No annotation accuracy data yet. Add some labels.</div>
+            <div className="p-6 text-center text-gray-500">No annotations yet. Add some labels.</div>
           ) : (
             <>
               <div className="p-6 border-b border-gray-200">
-                <AnnotationAccuracyChart data={annotationAccuracy.data} title="Accuracy by Evaluator" />
+                <AnnotationAccuracyChart data={annotationAccuracy.data} title="Raw Agreement by Evaluator" />
               </div>
+              {annotationAccuracy.skipped_labels > 0 && (
+                <div className="px-6 py-3 bg-amber-50 text-xs text-amber-800">
+                  {annotationAccuracy.skipped_labels} annotation{annotationAccuracy.skipped_labels === 1 ? '' : 's'} skipped
+                  (unrecognized label{annotationAccuracy.unrecognized_labels.length === 1 ? '' : 's'}:{' '}
+                  {annotationAccuracy.unrecognized_labels.map((l) => `"${l}"`).join(', ')}).
+                </div>
+              )}
               {annotationAccuracy.data.map((entry) => (
                 <div key={entry.evaluator_name} className="px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-900">{entry.evaluator_name}</p>
-                      <p className="text-xs text-gray-500">{entry.agreed}/{entry.total} agreed</p>
+                      <p className="text-xs text-gray-500">
+                        {entry.agreed}/{entry.n} agreed
+                        {entry.agreement_ci_95 && ` • 95% CI ${entry.agreement_ci_95.low}–${entry.agreement_ci_95.high}%`}
+                        {` • κ = ${entry.kappa ?? 'n/a'}`}
+                      </p>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full ${entry.accuracy >= 80 ? 'bg-green-100 text-green-800' : entry.accuracy >= 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                      {entry.accuracy}% accuracy
-                    </span>
+                    {entry.agreement === null ? (
+                      <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">no scored labels</span>
+                    ) : (
+                      <span className={`text-xs px-2 py-1 rounded-full ${entry.agreement >= 80 ? 'bg-green-100 text-green-800' : entry.agreement >= 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                        {entry.agreement}% agreement
+                      </span>
+                    )}
                   </div>
                   <div className="mt-2 text-xs text-gray-500">
-                    Human: {entry.human_true} pass / {entry.human_false} fail • Auto: {entry.auto_true} pass / {entry.auto_false} fail
+                    Human pass: {entry.confusion_matrix.human_pass_auto_pass} auto pass / {entry.confusion_matrix.human_pass_auto_fail} auto fail
+                    {' • '}Human fail: {entry.confusion_matrix.human_fail_auto_pass} auto pass / {entry.confusion_matrix.human_fail_auto_fail} auto fail
+                    {(entry.skipped_labels > 0 || entry.skipped_unscored > 0) &&
+                      ` • skipped: ${entry.skipped_labels} unrecognized label, ${entry.skipped_unscored} unscored`}
                   </div>
                 </div>
               ))}
