@@ -8,6 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
+import { parseDay } from '../../utils/date'
 
 interface TrendData {
   date: string
@@ -63,7 +64,7 @@ export default function ScoreTrendsChart({ data, title = 'Evaluation Score Trend
               dataKey="date"
               tick={{ fontSize: 12 }}
               tickFormatter={(value) => {
-                const date = new Date(value)
+                const date = parseDay(value)
                 return `${date.getMonth() + 1}/${date.getDate()}`
               }}
             />
@@ -80,7 +81,7 @@ export default function ScoreTrendsChart({ data, title = 'Evaluation Score Trend
                 fontSize: '12px',
               }}
               formatter={(value: number) => [`${value}%`, '']}
-              labelFormatter={(label) => new Date(label).toLocaleDateString()}
+              labelFormatter={(label) => parseDay(label).toLocaleDateString()}
             />
             <Legend
               wrapperStyle={{ fontSize: '12px' }}
