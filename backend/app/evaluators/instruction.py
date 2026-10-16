@@ -17,7 +17,7 @@ class InstructionAdherenceEvaluator(BaseEvaluator):
     """
 
     name = "instruction_adherence"
-    description = "Checks if output follows structural and content constraints"
+    description = "Rule-based: checks structural and content constraints"
 
     def __init__(
         self,

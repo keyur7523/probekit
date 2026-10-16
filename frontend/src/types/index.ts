@@ -55,6 +55,7 @@ export interface EvaluationOutput {
   input_tokens: number | null
   output_tokens: number | null
   cost_usd: number | null
+  is_local?: boolean
   error: string | null
   evaluator_results: EvaluatorResult[]
   annotations: HumanAnnotation[]
@@ -65,6 +66,10 @@ export interface EvaluatorRegressionDelta {
   current_rate: number
   previous_rate: number
   delta: number
+  current_n: number
+  previous_n: number
+  p_value: number | null
+  status: 'regressed' | 'improved' | 'no_significant_change' | 'insufficient_data'
   regressed: boolean
 }
 
@@ -73,6 +78,7 @@ export interface RunComparison {
   previous_timestamp: string
   deltas: EvaluatorRegressionDelta[]
   has_regression: boolean
+  has_insufficient_data: boolean
 }
 
 export interface EvaluationRun {
@@ -86,6 +92,8 @@ export interface EvaluationRun {
   test_case_count: number
   completed_count: number
   error_message: string | null
+  is_demo?: boolean
+  all_models_local?: boolean
   test_case_titles?: string[]
   outputs?: EvaluationOutput[]
   comparison?: RunComparison | null

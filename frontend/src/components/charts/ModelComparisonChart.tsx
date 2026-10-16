@@ -9,14 +9,16 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts'
+import { LOCAL_COST_LABEL } from '../../utils/cost'
 
 interface ModelData {
   model: string
   pass_rate: number
   avg_latency_ms: number
   avg_cost_usd: number
+  is_local?: boolean
   total_evaluations: number
-  [key: string]: string | number
+  [key: string]: string | number | boolean | undefined
 }
 
 interface ModelComparisonChartProps {
@@ -94,7 +96,10 @@ export default function ModelComparisonChart({
                 borderRadius: '8px',
                 fontSize: '12px',
               }}
-              formatter={(value: number) => [metricConfig.format(value), metricConfig.label]}
+              formatter={(value: number, _name, item) => [
+                metric === 'avg_cost_usd' && item.payload.is_local ? LOCAL_COST_LABEL : metricConfig.format(value),
+                metricConfig.label,
+              ]}
               labelFormatter={(label) => `Model: ${label}`}
             />
             <Legend wrapperStyle={{ fontSize: '12px' }} />

@@ -16,7 +16,7 @@ class FormatEvaluator(BaseEvaluator):
     """
 
     name = "format_consistency"
-    description = "Validates output format against expected schema"
+    description = "Rule-based: validates output format against expected schema"
 
     def __init__(
         self,

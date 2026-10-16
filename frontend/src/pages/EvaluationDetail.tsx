@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { evaluationsApi, annotationsApi } from '../api/client'
+import { DemoBadge, DemoDataNotice } from '../components/DemoData'
+import { RegressionVerdict, formatChangeStatus } from '../components/RegressionStatus'
+import { formatCost } from '../utils/cost'
 import type { EvaluationRun, EvaluationOutput, EvaluatorResult, Evaluator } from '../types'
 
 function StatusBadge({ status }: { status: EvaluationRun['status'] }) {
@@ -73,7 +76,7 @@ function OutputCard({ output, runId }: { output: EvaluationOutput; runId: string
           </div>
           <div className="flex items-center gap-4 text-sm text-gray-500">
             <span>{output.latency_ms}ms</span>
-            <span>${output.cost_usd?.toFixed(6) || '0.000000'}</span>
+            <span>{formatCost(output.cost_usd, 6, output.is_local)}</span>
             <span>{output.input_tokens}→{output.output_tokens} tokens</span>
           </div>
         </div>
@@ -318,7 +321,10 @@ export default function EvaluationDetail() {
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{run.prompt_version}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-gray-900">{run.prompt_version}</h1>
+              {run.is_demo && <DemoBadge />}
+            </div>
             <p className="mt-1 text-gray-500">
               {new Date(run.timestamp).toLocaleString()}
             </p>
@@ -333,6 +339,7 @@ export default function EvaluationDetail() {
             <StatusBadge status={run.status} />
           </div>
         </div>
+        {run.is_demo && <DemoDataNotice className="mt-4" />}
       </div>
 
       {/* Summary Stats */}
@@ -340,7 +347,7 @@ export default function EvaluationDetail() {
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Total Cost</p>
           <p className="text-xl font-semibold text-gray-900">
-            ${run.total_cost_usd?.toFixed(4) || '0.0000'}
+            {formatCost(run.total_cost_usd, 4, run.all_models_local)}
           </p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4">
@@ -369,9 +376,10 @@ export default function EvaluationDetail() {
               <h2 className="text-lg font-semibold text-gray-900">Regression Check</h2>
               <p className="text-sm text-gray-500">Compared to previous run for this prompt version.</p>
             </div>
-            <span className={`text-xs px-2 py-1 rounded-full ${run.comparison.has_regression ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-              {run.comparison.has_regression ? 'Regression detected' : 'No regression'}
-            </span>
+            <RegressionVerdict
+              hasRegression={run.comparison.has_regression}
+              hasInsufficientData={run.comparison.has_insufficient_data}
+            />
           </div>
           <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
             <span>Previous run: {new Date(run.comparison.previous_timestamp).toLocaleString()}</span>
@@ -388,7 +396,10 @@ export default function EvaluationDetail() {
                     {item.delta >= 0 ? `+${item.delta}` : item.delta}%
                   </span>
                 </div>
-                <p className="text-xs text-gray-500">{item.previous_rate}% → {item.current_rate}%</p>
+                <p className="text-xs text-gray-500">
+                  {item.previous_rate}% (n={item.previous_n}) → {item.current_rate}% (n={item.current_n})
+                  {' • '}{formatChangeStatus(item.status, item.p_value)}
+                </p>
               </div>
             ))}
           </div>

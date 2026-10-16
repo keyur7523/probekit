@@ -178,6 +178,7 @@ export interface DashboardMetrics {
   total_test_cases: number
   total_runs: number
   completed_runs: number
+  demo_runs?: number
   total_cost_usd: number
   avg_latency_ms: number
   latency_p50_ms: number
@@ -200,8 +201,9 @@ export interface ModelComparisonResponse {
     pass_rate: number
     avg_latency_ms: number
     avg_cost_usd: number
+    is_local?: boolean
     total_evaluations: number
-    [key: string]: string | number
+    [key: string]: string | number | boolean | undefined
   }>
 }
 
@@ -221,8 +223,10 @@ export interface RecentActivityResponse {
   activity: Array<{
     id: string
     prompt_version: string
+    is_demo?: boolean
     timestamp: string
     models: string[]
+    all_models_local?: boolean
     test_case_count: number
     total_evaluations: number
     passed: number
@@ -236,6 +240,7 @@ export interface VersionInfo {
   prompt_version: string
   run_id: string
   timestamp: string
+  is_demo?: boolean
   pass_rate: number
   total_evaluations: number
   cost_usd: number
@@ -253,6 +258,7 @@ export interface Regression {
   baseline: number
   current: number
   delta: number
+  p_value: number | null
   severity: 'high' | 'medium'
   message: string
 }
@@ -263,6 +269,7 @@ export interface ComparisonResponse {
     version: string
     run_id: string
     timestamp: string
+    is_demo?: boolean
     stats: {
       pass_rate: number
       total_evaluations: number
@@ -273,6 +280,7 @@ export interface ComparisonResponse {
         pass_rate: number
         avg_latency_ms: number
         avg_cost_usd: number
+        is_local?: boolean
       }>
     }
   }
@@ -280,6 +288,7 @@ export interface ComparisonResponse {
     version: string
     run_id: string
     timestamp: string
+    is_demo?: boolean
     stats: {
       pass_rate: number
       total_evaluations: number
@@ -290,6 +299,7 @@ export interface ComparisonResponse {
         pass_rate: number
         avg_latency_ms: number
         avg_cost_usd: number
+        is_local?: boolean
       }>
     }
   }
@@ -304,18 +314,35 @@ export interface ComparisonResponse {
       current: number
       delta: number
       regression: boolean
-    }>
+    } & ChangeAssessment>
     models: Record<string, {
       baseline: { pass_rate: number; avg_latency_ms: number; avg_cost_usd: number }
-      current: { pass_rate: number; avg_latency_ms: number; avg_cost_usd: number }
+      current: { pass_rate: number; avg_latency_ms: number; avg_cost_usd: number; is_local?: boolean }
       deltas: { pass_rate: number; avg_latency_ms: number; avg_cost_usd: number }
       regression: boolean
-    }>
+    } & ChangeAssessment>
   }
   regressions?: Regression[]
   has_regressions?: boolean
   regression_count?: number
   threshold?: number
+  insufficient_data?: string[]
+  criteria?: RegressionCriteria
+}
+
+export type ChangeStatus = 'regressed' | 'improved' | 'no_significant_change' | 'insufficient_data'
+
+export interface ChangeAssessment {
+  status: ChangeStatus
+  p_value: number | null
+  baseline_n: number
+  current_n: number
+}
+
+export interface RegressionCriteria {
+  min_samples: number
+  alpha: number
+  test: string
 }
 
 export interface RegressionItem {
@@ -323,6 +350,10 @@ export interface RegressionItem {
   current_rate: number | null
   previous_rate: number | null
   delta: number | null
+  current_n: number
+  previous_n: number
+  p_value: number | null
+  status: ChangeStatus
   regressed: boolean
 }
 
@@ -338,27 +369,39 @@ export interface VersionComparison {
   } | null
   regressions: RegressionItem[]
   has_regression: boolean
+  has_insufficient_data?: boolean
   note?: string
 }
 
 export interface RegressionsResponse {
   comparisons: VersionComparison[]
+  criteria: RegressionCriteria
 }
 
 export default api
 
+export interface AnnotationAgreement {
+  evaluator_name: string
+  n: number
+  agreed: number
+  agreement: number | null
+  agreement_ci_95: { low: number; high: number } | null
+  kappa: number | null
+  confusion_matrix: {
+    human_pass_auto_pass: number
+    human_pass_auto_fail: number
+    human_fail_auto_pass: number
+    human_fail_auto_fail: number
+  }
+  skipped_labels: number
+  skipped_unscored: number
+}
+
 export interface AnnotationAccuracyResponse {
-  data: Array<{
-    evaluator_name: string
-    total: number
-    agreed: number
-    accuracy: number
-    human_true: number
-    human_false: number
-    auto_true: number
-    auto_false: number
-  }>
+  data: AnnotationAgreement[]
   total_annotations: number
+  skipped_labels: number
+  unrecognized_labels: string[]
   note?: string
 }
 

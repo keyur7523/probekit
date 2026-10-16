@@ -18,7 +18,7 @@ class RefusalEvaluator(BaseEvaluator):
     """
 
     name = "refusal_behavior"
-    description = "Evaluates if model refuses/abstains appropriately"
+    description = "Rule-based: pattern-matches refusal/abstention and checks it was appropriate"
 
     # Common refusal patterns
     REFUSAL_PATTERNS = [

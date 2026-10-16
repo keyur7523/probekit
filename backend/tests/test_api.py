@@ -364,3 +364,80 @@ class TestDashboardAPI:
         data = response.json()
         assert "activity" in data
         assert isinstance(data["activity"], list)
+
+
+class TestDemoRunExclusion:
+    """Seeded demo runs must never feed regression or agreement metrics by default."""
+
+    async def _add_run(self, session, test_case, *, is_demo: bool, passed: bool, label: str, minutes_ago: int):
+        from datetime import datetime, timedelta
+        from app.models import EvaluationRun, EvaluationOutput, EvaluatorResult, HumanAnnotation, RunStatus
+
+        run = EvaluationRun(
+            prompt_version="v1.0",
+            models=[{"model_id": "demo-model" if is_demo else "gpt-4o"}],
+            status=RunStatus.COMPLETED,
+            is_demo=is_demo,
+            timestamp=datetime.utcnow() - timedelta(minutes=minutes_ago),
+        )
+        session.add(run)
+        await session.flush()
+        output = EvaluationOutput(
+            run_id=run.id,
+            test_case_id=test_case.id,
+            model=run.models[0]["model_id"],
+            model_response="response",
+        )
+        session.add(output)
+        await session.flush()
+        session.add(EvaluatorResult(output_id=output.id, evaluator_name="hallucination", passed=passed, score=1.0 if passed else 0.0))
+        session.add(HumanAnnotation(output_id=output.id, annotation_type="hallucination", label=label))
+        await session.commit()
+        return run
+
+    async def _seed(self, session):
+        from app.models import TestCase
+
+        test_case = TestCase(prompt="p", input="i")
+        session.add(test_case)
+        await session.commit()
+        real = await self._add_run(session, test_case, is_demo=False, passed=True, label="correct", minutes_ago=30)
+        demo = await self._add_run(session, test_case, is_demo=True, passed=False, label="correct", minutes_ago=1)
+        return real, demo
+
+    async def test_run_responses_flag_demo(self, client: AsyncClient, test_session):
+        real, demo = await self._seed(test_session)
+        response = await client.get("/api/evaluations/runs")
+        flags = {r["id"]: r["is_demo"] for r in response.json()["runs"]}
+        assert flags == {str(real.id): False, str(demo.id): True}
+
+        response = await client.get("/api/dashboard/metrics")
+        assert response.json()["demo_runs"] == 1
+
+    async def test_regressions_exclude_demo_by_default(self, client: AsyncClient, test_session):
+        real, demo = await self._seed(test_session)
+
+        data = (await client.get("/api/dashboard/regressions")).json()
+        run_ids = {c["current_run"]["id"] for c in data["comparisons"]}
+        run_ids |= {c["previous_run"]["id"] for c in data["comparisons"] if c["previous_run"]}
+        assert run_ids == {str(real.id)}
+
+        data = (await client.get("/api/dashboard/regressions", params={"include_demo": True})).json()
+        assert data["comparisons"][0]["current_run"]["id"] == str(demo.id)
+        assert data["comparisons"][0]["previous_run"]["id"] == str(real.id)
+
+    async def test_annotation_accuracy_excludes_demo_by_default(self, client: AsyncClient, test_session):
+        await self._seed(test_session)
+
+        data = (await client.get("/api/dashboard/annotation-accuracy")).json()
+        assert data["total_annotations"] == 1
+        assert data["data"][0]["agreed"] == 1
+
+        data = (await client.get("/api/dashboard/annotation-accuracy", params={"include_demo": True})).json()
+        assert data["total_annotations"] == 2
+        assert data["data"][0]["agreed"] == 1
+
+    async def test_run_comparison_ignores_demo_runs(self, client: AsyncClient, test_session):
+        real, _ = await self._seed(test_session)
+        data = (await client.get(f"/api/evaluations/runs/{real.id}")).json()
+        assert data["comparison"] is None

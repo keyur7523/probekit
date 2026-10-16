@@ -7,6 +7,9 @@ from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models import EvaluationRun, EvaluationOutput, EvaluatorResult, RunStatus, TestCase, HumanAnnotation
+from app.services.agreement import ConfusionMatrix, normalize_label, summarize as summarize_agreement
+from app.clients.ollama import is_local_model
+from app.services.regression import ALPHA, MIN_SAMPLES, REGRESSED, INSUFFICIENT_DATA, assess_change
 
 router = APIRouter()
 
@@ -50,6 +53,9 @@ def _calculate_run_stats(run: EvaluationRun) -> dict:
     for model, counts in model_pass_counts.items():
         model_stats[model] = {
             'pass_rate': _rate(counts['passed'], counts['total']),
+            'passed': counts['passed'],
+            'total': counts['total'],
+            'is_local': is_local_model(model),
             'avg_latency_ms': round(sum(model_latency.get(model, [])) / len(model_latency.get(model, [1])), 1)
             if model_latency.get(model) else 0.0,
             'avg_cost_usd': round(sum(model_costs.get(model, [])) / len(model_costs.get(model, [1])), 6)
@@ -58,10 +64,12 @@ def _calculate_run_stats(run: EvaluationRun) -> dict:
 
     return {
         'pass_rate': _rate(total_passed, total_results),
+        'passed': total_passed,
         'total_evaluations': total_results,
         'cost_usd': round(run.total_cost_usd or 0.0, 6),
         'duration_ms': int(run.total_duration_ms or 0),
         'evaluator_pass_rates': evaluator_pass_rates,
+        'evaluator_counts': {name: dict(values) for name, values in evaluator_counts.items()},
         'model_stats': model_stats,
     }
 
@@ -80,6 +88,9 @@ async def get_metrics(db: AsyncSession = Depends(get_db)):
     """High-level dashboard metrics including latency percentiles."""
     total_test_cases = (await db.execute(select(func.count(TestCase.id)))).scalar() or 0
     total_runs = (await db.execute(select(func.count(EvaluationRun.id)))).scalar() or 0
+    demo_runs = (await db.execute(
+        select(func.count(EvaluationRun.id)).where(EvaluationRun.is_demo.is_(True))
+    )).scalar() or 0
     completed_runs = (await db.execute(
         select(func.count(EvaluationRun.id)).where(EvaluationRun.status == RunStatus.COMPLETED)
     )).scalar() or 0
@@ -107,6 +118,7 @@ async def get_metrics(db: AsyncSession = Depends(get_db)):
         'total_test_cases': total_test_cases,
         'total_runs': total_runs,
         'completed_runs': completed_runs,
+        'demo_runs': demo_runs,
         'total_cost_usd': round(float(total_cost), 6),
         'avg_latency_ms': round(float(avg_latency), 1),
         'latency_p50_ms': round(latency_p50, 1),
@@ -195,6 +207,7 @@ async def get_model_comparison(db: AsyncSession = Depends(get_db)):
             'pass_rate': pass_rate,
             'avg_latency_ms': avg_latency,
             'avg_cost_usd': avg_cost,
+            'is_local': is_local_model(model),
             'total_evaluations': total,
         })
 
@@ -247,9 +260,12 @@ async def get_evaluator_breakdown(db: AsyncSession = Depends(get_db)):
 
 
 @router.get('/annotation-accuracy')
-async def get_annotation_accuracy(db: AsyncSession = Depends(get_db)):
+async def get_annotation_accuracy(
+    include_demo: bool = Query(False, description='Include seeded demo runs'),
+    db: AsyncSession = Depends(get_db),
+):
     """Compare evaluator results with human annotations (per evaluator)."""
-    result = await db.execute(
+    query = (
         select(HumanAnnotation, EvaluatorResult)
         .join(
             EvaluatorResult,
@@ -257,68 +273,67 @@ async def get_annotation_accuracy(db: AsyncSession = Depends(get_db)):
             (EvaluatorResult.evaluator_name == HumanAnnotation.annotation_type)
         )
     )
-    rows = result.all()
+    if not include_demo:
+        query = (
+            query.join(EvaluationOutput, EvaluationOutput.id == HumanAnnotation.output_id)
+            .join(EvaluationRun, EvaluationRun.id == EvaluationOutput.run_id)
+            .where(EvaluationRun.is_demo.is_(False))
+        )
+    result = await db.execute(query)
 
-    def normalize_label(label: str) -> bool | None:
-        if not label:
-            return None
-        value = label.strip().lower()
-        true_labels = {'correct', 'pass', 'passed', 'yes', 'true', 'ok'}
-        false_labels = {'incorrect', 'fail', 'failed', 'no', 'false', 'hallucinated'}
-        if value in true_labels:
-            return True
-        if value in false_labels:
-            return False
-        return None
+    # One item per (output, evaluator): the latest evaluator verdict (evaluators can be
+    # re-run) paired with the latest human label for that output.
+    latest_annotation: dict[tuple, HumanAnnotation] = {}
+    latest_result: dict[tuple, EvaluatorResult] = {}
+    for annotation, auto_result in result.all():
+        key = (annotation.output_id, auto_result.evaluator_name)
+        current = latest_annotation.get(key)
+        if current is None or (annotation.created_at or datetime.min) > (current.created_at or datetime.min):
+            latest_annotation[key] = annotation
+        current = latest_result.get(key)
+        if current is None or (auto_result.created_at or datetime.min) > (current.created_at or datetime.min):
+            latest_result[key] = auto_result
 
-    stats: dict[str, dict[str, int]] = defaultdict(lambda: {
-        'total': 0,
-        'matched': 0,
-        'agreed': 0,
-        'human_true': 0,
-        'human_false': 0,
-        'auto_true': 0,
-        'auto_false': 0,
-    })
+    matrices: dict[str, ConfusionMatrix] = {}
+    skipped_labels: dict[str, int] = defaultdict(int)
+    skipped_unscored: dict[str, int] = defaultdict(int)
+    unrecognized: set[str] = set()
 
-    for annotation, auto_result in rows:
+    for key, annotation in latest_annotation.items():
+        evaluator_name = key[1]
+        # Every evaluator with annotations gets a row, even if n == 0
+        matrix = matrices.setdefault(evaluator_name, ConfusionMatrix())
         human_value = normalize_label(annotation.label)
         if human_value is None:
+            skipped_labels[evaluator_name] += 1
+            unrecognized.add(annotation.label)
             continue
-        entry = stats[auto_result.evaluator_name]
-        entry['total'] += 1
-        entry['matched'] += 1
-        if human_value:
-            entry['human_true'] += 1
-        else:
-            entry['human_false'] += 1
-        if auto_result.passed is True:
-            entry['auto_true'] += 1
-        elif auto_result.passed is False:
-            entry['auto_false'] += 1
-        if auto_result.passed == human_value:
-            entry['agreed'] += 1
+        auto_passed = latest_result[key].passed
+        if auto_passed is None:
+            skipped_unscored[evaluator_name] += 1
+            continue
+        matrix.add(human_value, auto_passed)
 
     data = []
-    for evaluator_name, entry in stats.items():
-        total = entry['total']
-        accuracy = round((entry['agreed'] / total) * 100, 1) if total else 0.0
+    for evaluator_name, matrix in matrices.items():
         data.append({
             'evaluator_name': evaluator_name,
-            'total': total,
-            'agreed': entry['agreed'],
-            'accuracy': accuracy,
-            'human_true': entry['human_true'],
-            'human_false': entry['human_false'],
-            'auto_true': entry['auto_true'],
-            'auto_false': entry['auto_false'],
+            **summarize_agreement(matrix),
+            'skipped_labels': skipped_labels[evaluator_name],
+            'skipped_unscored': skipped_unscored[evaluator_name],
         })
 
-    data.sort(key=lambda item: item['accuracy'], reverse=True)
+    data.sort(key=lambda item: (item['agreement'] is None, -(item['agreement'] or 0)))
     return {
         'data': data,
-        'total_annotations': sum(item['total'] for item in data),
-        'note': 'Labels must be one of: correct/incorrect, pass/fail, yes/no, true/false, ok, hallucinated.'
+        'total_annotations': sum(item['n'] for item in data),
+        'skipped_labels': sum(skipped_labels.values()),
+        'unrecognized_labels': sorted(unrecognized),
+        'note': (
+            'Human labels map to pass (correct/pass/yes/true/ok/faithful/grounded) or fail '
+            '(incorrect/fail/no/false/hallucinated/unfaithful); other labels are counted in '
+            'skipped_labels. Agreement CI is a 95% Wilson interval.'
+        ),
     }
 
 
@@ -346,8 +361,10 @@ async def get_recent_activity(
         activity.append({
             'id': str(run.id),
             'prompt_version': run.prompt_version,
+            'is_demo': run.is_demo,
             'test_case_count': run.test_case_count,
             'models': [m.get('model_id') for m in (run.models or [])],
+            'all_models_local': bool(run.models) and all(is_local_model(m.get('model_id', '')) for m in run.models),
             'cost_usd': stats['cost_usd'],
             'duration_ms': stats['duration_ms'],
             'pass_rate': stats['pass_rate'],
@@ -357,9 +374,14 @@ async def get_recent_activity(
 
 
 @router.get('/regressions')
-async def get_regressions(db: AsyncSession = Depends(get_db)):
+async def get_regressions(
+    include_demo: bool = Query(False, description='Include seeded demo runs'),
+    min_samples: int = Query(MIN_SAMPLES, ge=1, description='Minimum results per evaluator in each run'),
+    alpha: float = Query(ALPHA, gt=0, lt=1, description='Two-sided significance level'),
+    db: AsyncSession = Depends(get_db),
+):
     """Compare evaluator pass rates between the two most recent runs per prompt version."""
-    result = await db.execute(
+    query = (
         select(EvaluationRun)
         .where(EvaluationRun.status == RunStatus.COMPLETED)
         .options(
@@ -368,6 +390,9 @@ async def get_regressions(db: AsyncSession = Depends(get_db)):
         )
         .order_by(EvaluationRun.timestamp.desc())
     )
+    if not include_demo:
+        query = query.where(EvaluationRun.is_demo.is_(False))
+    result = await db.execute(query)
     runs = result.scalars().all()
 
     runs_by_version = defaultdict(list)
@@ -412,17 +437,27 @@ async def get_regressions(db: AsyncSession = Depends(get_db)):
         regressions = []
         evaluator_names = set(current_stats.keys()) | set(previous_stats.keys())
         for name in sorted(evaluator_names):
-            current_rate = current_stats.get(name, {}).get('rate')
-            previous_rate = previous_stats.get(name, {}).get('rate')
+            current = current_stats.get(name, {'passed': 0, 'total': 0})
+            previous = previous_stats.get(name, {'passed': 0, 'total': 0})
+            current_rate = current.get('rate')
+            previous_rate = previous.get('rate')
             delta = None
             if current_rate is not None and previous_rate is not None:
                 delta = round(current_rate - previous_rate, 3)
+            change = assess_change(
+                previous['passed'], previous['total'], current['passed'], current['total'],
+                min_samples=min_samples, alpha=alpha,
+            )
             regressions.append({
                 'evaluator_name': name,
                 'current_rate': current_rate,
                 'previous_rate': previous_rate,
                 'delta': delta,
-                'regressed': delta is not None and delta < 0,
+                'current_n': change['current_n'],
+                'previous_n': change['baseline_n'],
+                'p_value': change['p_value'],
+                'status': change['status'],
+                'regressed': change['status'] == REGRESSED,
             })
 
         has_regression = any(r['regressed'] for r in regressions)
@@ -439,9 +474,13 @@ async def get_regressions(db: AsyncSession = Depends(get_db)):
             },
             'regressions': regressions,
             'has_regression': has_regression,
+            'has_insufficient_data': any(r['status'] == INSUFFICIENT_DATA for r in regressions),
         })
 
-    return {'comparisons': comparisons}
+    return {
+        'comparisons': comparisons,
+        'criteria': {'min_samples': min_samples, 'alpha': alpha, 'test': 'two-proportion z-test (two-sided)'},
+    }
 
 
 @router.get('/versions')
@@ -470,6 +509,7 @@ async def get_versions(db: AsyncSession = Depends(get_db)):
             'prompt_version': prompt_version,
             'run_id': str(run.id),
             'timestamp': run.timestamp,
+            'is_demo': run.is_demo,
             'pass_rate': stats['pass_rate'],
             'total_evaluations': stats['total_evaluations'],
             'cost_usd': stats['cost_usd'],
@@ -486,9 +526,15 @@ async def compare_versions(
     baseline_version: str = Query(..., alias='baseline_version'),
     current_version: str = Query(..., alias='current_version'),
     regression_threshold: float = Query(5.0, alias='regression_threshold'),
+    min_samples: int = Query(MIN_SAMPLES, ge=1, description='Minimum results per metric in each run'),
+    alpha: float = Query(ALPHA, gt=0, lt=1, description='Two-sided significance level'),
     db: AsyncSession = Depends(get_db),
 ):
-    """Compare two prompt versions and flag regressions."""
+    """Compare two prompt versions and flag regressions.
+
+    A drop is flagged only when it is at least regression_threshold points, both runs have
+    at least min_samples results, and a two-proportion z-test is significant at alpha.
+    """
     if baseline_version == current_version:
         return {'error': 'Baseline and current versions must differ'}
 
@@ -523,9 +569,22 @@ async def compare_versions(
     }
 
     regressions = []
+    insufficient_data = []
 
     def severity(delta: float) -> str:
         return 'high' if abs(delta) >= regression_threshold * 2 else 'medium'
+
+    def judge(metric: str, delta: float, baseline: dict, current: dict) -> tuple[bool, dict]:
+        change = assess_change(
+            baseline['passed'], baseline['total'], current['passed'], current['total'],
+            min_samples=min_samples, alpha=alpha,
+        )
+        if change['status'] == INSUFFICIENT_DATA:
+            insufficient_data.append(metric)
+        is_regression = delta <= -regression_threshold and change['status'] == REGRESSED
+        return is_regression, change
+
+    empty_counts = {'passed': 0, 'total': 0}
 
     # Evaluator deltas
     evaluator_names = set(baseline_stats['evaluator_pass_rates'].keys()) | set(current_stats['evaluator_pass_rates'].keys())
@@ -533,12 +592,17 @@ async def compare_versions(
         baseline_rate = baseline_stats['evaluator_pass_rates'].get(evaluator, 0.0)
         current_rate = current_stats['evaluator_pass_rates'].get(evaluator, 0.0)
         delta = round(current_rate - baseline_rate, 1)
-        is_regression = delta <= -regression_threshold
+        is_regression, change = judge(
+            evaluator, delta,
+            baseline_stats['evaluator_counts'].get(evaluator, empty_counts),
+            current_stats['evaluator_counts'].get(evaluator, empty_counts),
+        )
         comparison['evaluators'][evaluator] = {
             'baseline': baseline_rate,
             'current': current_rate,
             'delta': delta,
             'regression': is_regression,
+            **change,
         }
         if is_regression:
             regressions.append({
@@ -547,6 +611,7 @@ async def compare_versions(
                 'baseline': baseline_rate,
                 'current': current_rate,
                 'delta': delta,
+                'p_value': change['p_value'],
                 'severity': severity(delta),
                 'message': f"{evaluator} pass rate dropped by {abs(delta)}%",
             })
@@ -554,10 +619,11 @@ async def compare_versions(
     # Model deltas (pass rate only)
     model_names = set(baseline_stats['model_stats'].keys()) | set(current_stats['model_stats'].keys())
     for model in model_names:
-        baseline_model = baseline_stats['model_stats'].get(model, {'pass_rate': 0.0, 'avg_latency_ms': 0.0, 'avg_cost_usd': 0.0})
-        current_model = current_stats['model_stats'].get(model, {'pass_rate': 0.0, 'avg_latency_ms': 0.0, 'avg_cost_usd': 0.0})
+        empty_model = {'pass_rate': 0.0, 'passed': 0, 'total': 0, 'avg_latency_ms': 0.0, 'avg_cost_usd': 0.0, 'is_local': is_local_model(model)}
+        baseline_model = baseline_stats['model_stats'].get(model, empty_model)
+        current_model = current_stats['model_stats'].get(model, empty_model)
         delta = round(current_model['pass_rate'] - baseline_model['pass_rate'], 1)
-        is_regression = delta <= -regression_threshold
+        is_regression, change = judge(model, delta, baseline_model, current_model)
         comparison['models'][model] = {
             'baseline': baseline_model,
             'current': current_model,
@@ -567,6 +633,7 @@ async def compare_versions(
                 'avg_cost_usd': round(current_model['avg_cost_usd'] - baseline_model['avg_cost_usd'], 6),
             },
             'regression': is_regression,
+            **change,
         }
         if is_regression:
             regressions.append({
@@ -575,19 +642,27 @@ async def compare_versions(
                 'baseline': baseline_model['pass_rate'],
                 'current': current_model['pass_rate'],
                 'delta': delta,
+                'p_value': change['p_value'],
                 'severity': severity(delta),
                 'message': f"{model} pass rate dropped by {abs(delta)}%",
             })
 
     # Overall regression
     overall_delta = comparison['overall']['pass_rate_delta']
-    if overall_delta <= -regression_threshold:
+    is_regression, change = judge(
+        'overall_pass_rate', overall_delta,
+        {'passed': baseline_stats['passed'], 'total': baseline_stats['total_evaluations']},
+        {'passed': current_stats['passed'], 'total': current_stats['total_evaluations']},
+    )
+    comparison['overall'].update(change)
+    if is_regression:
         regressions.append({
             'type': 'overall',
             'metric': 'overall_pass_rate',
             'baseline': baseline_stats['pass_rate'],
             'current': current_stats['pass_rate'],
             'delta': overall_delta,
+            'p_value': change['p_value'],
             'severity': severity(overall_delta),
             'message': f"Overall pass rate dropped by {abs(overall_delta)}%",
         })
@@ -597,12 +672,14 @@ async def compare_versions(
             'version': baseline_version,
             'run_id': str(baseline_run.id),
             'timestamp': baseline_run.timestamp,
+            'is_demo': baseline_run.is_demo,
             'stats': baseline_stats,
         },
         'current': {
             'version': current_version,
             'run_id': str(current_run.id),
             'timestamp': current_run.timestamp,
+            'is_demo': current_run.is_demo,
             'stats': current_stats,
         },
         'comparison': comparison,
@@ -610,6 +687,8 @@ async def compare_versions(
         'has_regressions': len(regressions) > 0,
         'regression_count': len(regressions),
         'threshold': regression_threshold,
+        'insufficient_data': insufficient_data,
+        'criteria': {'min_samples': min_samples, 'alpha': alpha, 'test': 'two-proportion z-test (two-sided)'},
     }
 
 

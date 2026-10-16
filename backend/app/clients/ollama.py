@@ -5,6 +5,17 @@ from app.config import get_settings
 
 settings = get_settings()
 
+# Model families served by the local Ollama client
+LOCAL_MODEL_FAMILIES = ("llama", "mistral", "mixtral", "phi", "qwen")
+
+
+def is_local_model(model_id: str) -> bool:
+    """True when a model ID routes to the local Ollama client (no API cost)."""
+    model_id = model_id.lower()
+    if "claude" in model_id or "gpt" in model_id or "o1" in model_id:
+        return False
+    return any(family in model_id for family in LOCAL_MODEL_FAMILIES)
+
 # Retry configuration for Ollama API (shorter delays for local service)
 OLLAMA_RETRY_CONFIG = RetryConfig(
     max_attempts=3,

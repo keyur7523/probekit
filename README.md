@@ -8,10 +8,12 @@ The current state of prompt evaluation is immature. "Is this response good?" is 
 
 ## Features
 
-- **Multi-model evaluation** — Run the same prompt against Claude, GPT-4, and local models; track cost and latency
-- **Pre-built evaluators** — Instruction adherence, hallucination detection, output stability, refusal behavior, format consistency
-- **Human annotation UI** — Review outputs, add labels, track agreement between human and automated evaluations
-- **Regression detection** — Compare prompt versions, flag regressions automatically
+- **Multi-model evaluation** — Run the same prompt against Claude, GPT-4, and local models; track cost and latency (local Ollama runs are labelled "local (no API cost)" rather than $0.00)
+- **Pre-built evaluators** — Rule-based instruction adherence, format, and refusal checks; an LLM-judged hallucination check; lexical output stability (see [Evaluators](#evaluators))
+- **Human annotation workflow** — label model outputs and compare each automatic
+  evaluator's verdict against human labels (agreement, Cohen's kappa, confusion
+  matrix, and sample size per evaluator).
+- **Regression detection** — Compare prompt versions and flag a pass-rate drop only when both runs have at least 20 results for that evaluator and a two-sided two-proportion z-test is significant (p < 0.05); smaller samples are reported as "insufficient data"
 - **Dashboard** — Visualize trends, model comparison, evaluator performance over time
 
 ## Quick Start
@@ -65,6 +67,11 @@ python3 backend/scripts/seed_test_cases.py --api http://localhost:8001
 python3 backend/scripts/seed_demo_runs.py
 ```
 
+> Demo runs created by `seed_demo_runs.py` use scripted outputs and scripted
+> evaluator results to illustrate the dashboards. They are flagged as demo data,
+> shown with a "DEMO" badge, and excluded from agreement and regression metrics.
+> They are not real model results.
+
 ## API Endpoints
 
 ### Test Cases
@@ -99,9 +106,9 @@ python3 backend/scripts/seed_demo_runs.py
 - `GET /api/dashboard/model-comparison` — Model comparison stats
 - `GET /api/dashboard/evaluator-breakdown` — Evaluator summary stats
 - `GET /api/dashboard/versions` — Latest run per prompt version
-- `GET /api/dashboard/compare` — Compare two versions and flag regressions
-- `GET /api/dashboard/regressions` — Latest regressions per version
-- `GET /api/dashboard/annotation-accuracy` — Human vs evaluator agreement
+- `GET /api/dashboard/compare` — Compare two versions and flag regressions (drop ≥ `regression_threshold` points and significant; `min_samples`, `alpha` adjustable)
+- `GET /api/dashboard/regressions` — Latest regressions per version, with per-evaluator n, p-value and status (`regressed`, `improved`, `no_significant_change`, `insufficient_data`); `min_samples`, `alpha` adjustable (demo runs excluded; `?include_demo=true` to opt in)
+- `GET /api/dashboard/annotation-accuracy` — Human vs evaluator agreement per evaluator: n, raw agreement with 95% Wilson interval, Cohen's kappa, confusion matrix, and counts of skipped (unrecognized or unscored) labels (demo runs excluded; `?include_demo=true` to opt in)
 
 ## Example Usage
 
@@ -196,16 +203,18 @@ probekit/
 
 ## Evaluators
 
-I built five core evaluators based on what matters for production prompts:
+I built five core evaluators for single-turn runs, plus a verbosity evaluator for conversations. They use different methods, and only the rule-based ones are deterministic:
 
-| Evaluator | What It Measures |
-|-----------|------------------|
-| **Instruction Adherence** | Does output follow constraints? (JSON validity, required fields, length limits, forbidden terms) |
-| **Hallucination Detection** | Are claims grounded in provided context? Uses LLM-as-judge to verify factual claims |
-| **Output Stability** | Is output consistent across re-runs? Measures semantic similarity via Jaccard |
-| **Refusal Behavior** | Does model refuse appropriately? Classifies responses as refusal/abstention/clarification/answer |
-| **Format Consistency** | Does output match expected format? Validates JSON schema, markdown structure, regex patterns |
-| **Verbosity Stability** | (Conversations) Does response length drift over turns? Measures drift slope, growth ratio |
+| Evaluator | Method | What It Measures |
+|-----------|--------|------------------|
+| **Instruction Adherence** | Rule-based | Does output follow constraints? (JSON validity, required fields, length limits, forbidden terms) |
+| **Format Consistency** | Rule-based | Does output match expected format? Validates JSON schema, markdown structure, regex patterns |
+| **Refusal Behavior** | Rule-based (pattern matching) | Does model refuse appropriately? Classifies responses as refusal/abstention/clarification/answer |
+| **Hallucination Check** | LLM-judged (two-step claim extraction and verification) | Are claims grounded in provided context? Claude Sonnet 4 extracts claims, then verifies each against the context — two API calls per output, not deterministic |
+| **Output Stability** | Lexical (Jaccard word overlap) | Is output consistent across re-runs at several temperatures? Paraphrases with the same meaning can score as unstable |
+| **Verbosity Stability** | Rule-based (length statistics) | (Conversations) Does response length drift over turns? Measures drift slope, growth ratio |
+
+Because the hallucination check is an LLM judge, it should be validated against human labels (via the annotation workflow) before its verdicts are trusted.
 
 ### Adding a Custom Evaluator
 

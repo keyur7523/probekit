@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { dashboardApi } from '../api/client'
+import { DemoBadge, DemoDataNotice } from '../components/DemoData'
+import { RegressionVerdict } from '../components/RegressionStatus'
+import { formatCost } from '../utils/cost'
 import {
   ScoreTrendsChart,
   ModelComparisonChart,
@@ -99,6 +102,8 @@ export default function Dashboard() {
         <p className="mt-1 text-gray-500">Overview of your LLM evaluation runs</p>
       </div>
 
+      {!!metrics?.demo_runs && <DemoDataNotice className="mb-8" />}
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <StatCard
@@ -121,7 +126,7 @@ export default function Dashboard() {
           subtitle={`p50 • p99: ${metrics?.latency_p99_ms?.toFixed(0) || 0}ms`}
         />
         <StatCard
-          title="Total Cost"
+          title="Total API Cost"
           value={metricsLoading ? '...' : `$${metrics?.total_cost_usd?.toFixed(4) || '0.0000'}`}
           subtitle={`Avg latency: ${metrics?.avg_latency_ms?.toFixed(0) || 0}ms`}
         />
@@ -180,31 +185,51 @@ export default function Dashboard() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">Annotation Accuracy</h2>
-            <p className="text-xs text-gray-500">Agreement between human labels and evaluator results.</p>
+            <h2 className="text-lg font-semibold text-gray-900">Human–Evaluator Agreement</h2>
+            <p className="text-xs text-gray-500">
+              Raw agreement with 95% Wilson interval, and Cohen's κ (agreement beyond chance).
+            </p>
           </div>
         </div>
         <div className="divide-y divide-gray-200">
           {!annotationAccuracy?.data?.length ? (
-            <div className="p-6 text-center text-gray-500">No annotation accuracy data yet. Add some labels.</div>
+            <div className="p-6 text-center text-gray-500">No annotations yet. Add some labels.</div>
           ) : (
             <>
               <div className="p-6 border-b border-gray-200">
-                <AnnotationAccuracyChart data={annotationAccuracy.data} title="Accuracy by Evaluator" />
+                <AnnotationAccuracyChart data={annotationAccuracy.data} title="Raw Agreement by Evaluator" />
               </div>
+              {annotationAccuracy.skipped_labels > 0 && (
+                <div className="px-6 py-3 bg-amber-50 text-xs text-amber-800">
+                  {annotationAccuracy.skipped_labels} annotation{annotationAccuracy.skipped_labels === 1 ? '' : 's'} skipped
+                  (unrecognized label{annotationAccuracy.unrecognized_labels.length === 1 ? '' : 's'}:{' '}
+                  {annotationAccuracy.unrecognized_labels.map((l) => `"${l}"`).join(', ')}).
+                </div>
+              )}
               {annotationAccuracy.data.map((entry) => (
                 <div key={entry.evaluator_name} className="px-6 py-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-900">{entry.evaluator_name}</p>
-                      <p className="text-xs text-gray-500">{entry.agreed}/{entry.total} agreed</p>
+                      <p className="text-xs text-gray-500">
+                        {entry.agreed}/{entry.n} agreed
+                        {entry.agreement_ci_95 && ` • 95% CI ${entry.agreement_ci_95.low}–${entry.agreement_ci_95.high}%`}
+                        {` • κ = ${entry.kappa ?? 'n/a'}`}
+                      </p>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full ${entry.accuracy >= 80 ? 'bg-green-100 text-green-800' : entry.accuracy >= 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                      {entry.accuracy}% accuracy
-                    </span>
+                    {entry.agreement === null ? (
+                      <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">no scored labels</span>
+                    ) : (
+                      <span className={`text-xs px-2 py-1 rounded-full ${entry.agreement >= 80 ? 'bg-green-100 text-green-800' : entry.agreement >= 60 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                        {entry.agreement}% agreement
+                      </span>
+                    )}
                   </div>
                   <div className="mt-2 text-xs text-gray-500">
-                    Human: {entry.human_true} pass / {entry.human_false} fail • Auto: {entry.auto_true} pass / {entry.auto_false} fail
+                    Human pass: {entry.confusion_matrix.human_pass_auto_pass} auto pass / {entry.confusion_matrix.human_pass_auto_fail} auto fail
+                    {' • '}Human fail: {entry.confusion_matrix.human_fail_auto_pass} auto pass / {entry.confusion_matrix.human_fail_auto_fail} auto fail
+                    {(entry.skipped_labels > 0 || entry.skipped_unscored > 0) &&
+                      ` • skipped: ${entry.skipped_labels} unrecognized label, ${entry.skipped_unscored} unscored`}
                   </div>
                 </div>
               ))}
@@ -238,9 +263,12 @@ export default function Dashboard() {
                       <p className="text-xs text-gray-500">{comparison.note || 'Not enough runs to compare'}</p>
                     )}
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${comparison.has_regression ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                    {comparison.has_regression ? 'Regression detected' : 'No regression'}
-                  </span>
+                  {comparison.previous_run && (
+                    <RegressionVerdict
+                      hasRegression={comparison.has_regression}
+                      hasInsufficientData={comparison.has_insufficient_data}
+                    />
+                  )}
                 </div>
                 {comparison.has_regression && comparison.regressions?.length ? (
                   <div className="mt-2 text-xs text-red-700">
@@ -281,7 +309,10 @@ export default function Dashboard() {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">{run.prompt_version}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-gray-900">{run.prompt_version}</p>
+                      {run.is_demo && <DemoBadge />}
+                    </div>
                     <p className="text-sm text-gray-500">
                       {run.test_case_count} test cases | {run.models.join(', ')}
                     </p>
@@ -289,7 +320,7 @@ export default function Dashboard() {
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="text-sm font-medium text-gray-900">
-                        ${run.cost_usd.toFixed(4)}
+                        {formatCost(run.cost_usd, 4, run.all_models_local)}
                       </p>
                       <p className="text-xs text-gray-500">
                         {(run.duration_ms / 1000).toFixed(2)}s

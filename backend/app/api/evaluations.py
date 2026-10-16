@@ -17,6 +17,7 @@ from app.schemas.evaluation import (
 from app.schemas.common import StatusEnum
 from app.services.evaluation import run_evaluation
 from app.services.evaluator_runner import run_evaluators_on_run
+from app.services.regression import REGRESSED, INSUFFICIENT_DATA, assess_change
 from app.evaluators import EVALUATOR_REGISTRY
 
 router = APIRouter()
@@ -169,6 +170,7 @@ async def get_evaluation_run(
         .where(EvaluationRun.prompt_version == run.prompt_version)
         .where(EvaluationRun.status == RunStatus.COMPLETED)
         .where(EvaluationRun.id != run.id)
+        .where(EvaluationRun.is_demo.is_(run.is_demo))
         .order_by(desc(EvaluationRun.timestamp))
         .options(
             selectinload(EvaluationRun.outputs)
@@ -179,7 +181,7 @@ async def get_evaluation_run(
     previous_run = prev_result.scalar_one_or_none()
 
     # Calculate evaluator pass rate deltas
-    def summarize_pass_rates(r: EvaluationRun) -> dict[str, float]:
+    def count_passes(r: EvaluationRun) -> dict[str, dict[str, int]]:
         counts: dict[str, dict[str, int]] = {}
         for output in r.outputs:
             for result in output.evaluator_results:
@@ -187,34 +189,40 @@ async def get_evaluation_run(
                 entry['total'] += 1
                 if result.passed:
                     entry['passed'] += 1
-        rates = {}
-        for name, entry in counts.items():
-            total = entry['total']
-            rates[name] = round((entry['passed'] / total) * 100, 1) if total else 0.0
-        return rates
+        return counts
+
+    def rate(entry: dict[str, int]) -> float:
+        return round((entry['passed'] / entry['total']) * 100, 1) if entry['total'] else 0.0
 
     comparison = None
     if previous_run and run.outputs:
-        current_rates = summarize_pass_rates(run)
-        previous_rates = summarize_pass_rates(previous_run)
-        evaluator_names = set(current_rates.keys()) | set(previous_rates.keys())
+        current_counts = count_passes(run)
+        previous_counts = count_passes(previous_run)
+        evaluator_names = set(current_counts.keys()) | set(previous_counts.keys())
         deltas = []
         for name in sorted(evaluator_names):
-            current_rate = current_rates.get(name, 0.0)
-            previous_rate = previous_rates.get(name, 0.0)
-            delta = round(current_rate - previous_rate, 1)
+            current = current_counts.get(name, {'passed': 0, 'total': 0})
+            previous = previous_counts.get(name, {'passed': 0, 'total': 0})
+            current_rate = rate(current)
+            previous_rate = rate(previous)
+            change = assess_change(previous['passed'], previous['total'], current['passed'], current['total'])
             deltas.append({
                 'evaluator_name': name,
                 'current_rate': current_rate,
                 'previous_rate': previous_rate,
-                'delta': delta,
-                'regressed': delta < 0,
+                'delta': round(current_rate - previous_rate, 1),
+                'current_n': change['current_n'],
+                'previous_n': change['baseline_n'],
+                'p_value': change['p_value'],
+                'status': change['status'],
+                'regressed': change['status'] == REGRESSED,
             })
         comparison = {
             'previous_run_id': str(previous_run.id),
             'previous_timestamp': previous_run.timestamp,
             'deltas': deltas,
             'has_regression': any(item['regressed'] for item in deltas),
+            'has_insufficient_data': any(item['status'] == INSUFFICIENT_DATA for item in deltas),
         }
 
     response = EvaluationRunDetailResponse.model_validate(run)

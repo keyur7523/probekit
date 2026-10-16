@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { dashboardApi, type Regression, type ComparisonResponse } from '../api/client'
+import { DemoDataNotice } from './DemoData'
+import { ChangeStatusBadge } from './RegressionStatus'
+import { formatCost } from '../utils/cost'
 
 function DeltaIndicator({ delta, suffix = '%', inverse = false }: { delta: number; suffix?: string; inverse?: boolean }) {
   const isPositive = inverse ? delta < 0 : delta > 0
@@ -69,6 +72,11 @@ function RegressionWarnings({ regressions }: { regressions: Regression[] }) {
   )
 }
 
+function allLocal(modelStats: Record<string, { is_local?: boolean }>): boolean {
+  const models = Object.values(modelStats)
+  return models.length > 0 && models.every((m) => m.is_local)
+}
+
 function ComparisonTable({ comparison }: { comparison: ComparisonResponse }) {
   if (!comparison.baseline || !comparison.current || !comparison.comparison) {
     return null
@@ -114,8 +122,8 @@ function ComparisonTable({ comparison }: { comparison: ComparisonResponse }) {
               </tr>
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Total Cost</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">${baseline.stats.cost_usd.toFixed(4)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">${current.stats.cost_usd.toFixed(4)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">{formatCost(baseline.stats.cost_usd, 4, allLocal(baseline.stats.model_stats))}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">{formatCost(current.stats.cost_usd, 4, allLocal(current.stats.model_stats))}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                   <DeltaIndicator delta={comp.overall.cost_delta} suffix="" inverse />
                 </td>
@@ -167,19 +175,13 @@ function ComparisonTable({ comparison }: { comparison: ComparisonResponse }) {
                         <DeltaIndicator delta={data.delta} />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {data.regression ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                            Regression
-                          </span>
-                        ) : data.delta > 0 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                            Improved
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                            Stable
-                          </span>
-                        )}
+                        <ChangeStatusBadge
+                          regression={data.regression}
+                          status={data.status}
+                          pValue={data.p_value}
+                          baselineN={data.baseline_n}
+                          currentN={data.current_n}
+                        />
                       </td>
                     </tr>
                   )
@@ -230,23 +232,17 @@ function ComparisonTable({ comparison }: { comparison: ComparisonResponse }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <span className="text-gray-600">${data.current.avg_cost_usd.toFixed(6)}</span>
+                          <span className="text-gray-600">{formatCost(data.current.avg_cost_usd, 6, data.current.is_local)}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
-                        {data.regression ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                            Regression
-                          </span>
-                        ) : data.deltas.pass_rate > 0 ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                            Improved
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">
-                            Stable
-                          </span>
-                        )}
+                        <ChangeStatusBadge
+                          regression={data.regression}
+                          status={data.status}
+                          pValue={data.p_value}
+                          baselineN={data.baseline_n}
+                          currentN={data.current_n}
+                        />
                       </td>
                     </tr>
                   )
@@ -316,7 +312,7 @@ export default function VersionComparison() {
               <option value="">Select baseline...</option>
               {versions.map((v) => (
                 <option key={v.prompt_version} value={v.prompt_version}>
-                  {v.prompt_version} ({v.pass_rate}% pass)
+                  {v.prompt_version} ({v.pass_rate}% pass){v.is_demo ? ' [DEMO]' : ''}
                 </option>
               ))}
             </select>
@@ -333,7 +329,7 @@ export default function VersionComparison() {
               <option value="">Select current...</option>
               {versions.map((v) => (
                 <option key={v.prompt_version} value={v.prompt_version}>
-                  {v.prompt_version} ({v.pass_rate}% pass)
+                  {v.prompt_version} ({v.pass_rate}% pass){v.is_demo ? ' [DEMO]' : ''}
                 </option>
               ))}
             </select>
@@ -395,6 +391,11 @@ export default function VersionComparison() {
         </div>
       )}
 
+      {/* Demo Data Notice */}
+      {comparison && !comparison.error && (comparison.baseline?.is_demo || comparison.current?.is_demo) && (
+        <DemoDataNotice className="mb-6" />
+      )}
+
       {/* Regression Warnings */}
       {comparison?.regressions && comparison.regressions.length > 0 && (
         <RegressionWarnings regressions={comparison.regressions} />
@@ -407,8 +408,15 @@ export default function VersionComparison() {
             <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="text-green-800 text-sm font-medium">No regressions detected with current threshold ({threshold}%)</p>
+            <p className="text-green-800 text-sm font-medium">
+              No significant regressions (drop ≥ {threshold} points, ≥ {comparison.criteria?.min_samples ?? 20} results per run, p &lt; {comparison.criteria?.alpha ?? 0.05})
+            </p>
           </div>
+          {!!comparison.insufficient_data?.length && (
+            <p className="mt-2 text-xs text-gray-600">
+              Not judged — too few results: {comparison.insufficient_data.join(', ')}
+            </p>
+          )}
         </div>
       )}
 

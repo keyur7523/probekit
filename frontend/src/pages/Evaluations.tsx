@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { evaluationsApi, testCasesApi } from '../api/client'
+import { DemoBadge } from '../components/DemoData'
+import { formatCost } from '../utils/cost'
 import type { EvaluationRun, EvaluationRunCreate, ModelConfig, Evaluator } from '../types'
 
 function StatusBadge({ status }: { status: EvaluationRun['status'] }) {
@@ -384,12 +386,15 @@ export default function Evaluations() {
                 {runs.map((run) => (
                   <tr key={run.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Link
-                        to={`/evaluations/${run.id}`}
-                        className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
-                      >
-                        {run.prompt_version}
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          to={`/evaluations/${run.id}`}
+                          className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                        >
+                          {run.prompt_version}
+                        </Link>
+                        {run.is_demo && <DemoBadge />}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <StatusBadge status={run.status} />
@@ -409,7 +414,7 @@ export default function Evaluations() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${run.total_cost_usd?.toFixed(4) || '0.0000'}
+                      {formatCost(run.total_cost_usd, 4, run.all_models_local)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {((run.total_duration_ms || 0) / 1000).toFixed(2)}s
