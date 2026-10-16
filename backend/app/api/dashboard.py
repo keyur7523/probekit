@@ -77,12 +77,14 @@ def _calculate_run_stats(run: EvaluationRun) -> dict:
 
 
 def _calculate_percentile(sorted_values: list, percentile: float) -> float:
-    """Calculate percentile from a sorted list of values."""
+    """Percentile of a sorted list, linearly interpolating between ranks (numpy's default)."""
     if not sorted_values:
         return 0.0
-    n = len(sorted_values)
-    index = int(percentile * (n - 1))
-    return float(sorted_values[index])
+    rank = percentile * (len(sorted_values) - 1)
+    lower = int(rank)
+    upper = min(lower + 1, len(sorted_values) - 1)
+    fraction = rank - lower
+    return float(sorted_values[lower] + (sorted_values[upper] - sorted_values[lower]) * fraction)
 
 
 @router.get('/metrics')
