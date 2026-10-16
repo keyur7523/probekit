@@ -84,7 +84,7 @@ and the failure patterns. Resume wording only with the measured numbers, e.g.
 
 Run `13373278` (`gpt-4o-mini`, 80 outputs), 80 blind human labels (19 hallucinated, 61
 faithful), judge `claude-sonnet-5-5` at low effort as of commit `e7a3cc2`. Per-item data:
-`study/labels` in `study/hallucination_labels.json`, verdicts in `study/results_v1.json`.
+human labels in `study/hallucination_labels.json`, labels and judge verdicts in `study/results_v1.json`.
 
 | | Judge: faithful | Judge: hallucinated |
 |---|---|---|
