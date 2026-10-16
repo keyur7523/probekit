@@ -31,6 +31,7 @@ class EvaluationRunResponse(BaseModel):
     test_case_count: int
     completed_count: int
     error_message: str | None
+    is_demo: bool = False
     test_case_titles: list[str] = []
 
     class Config:

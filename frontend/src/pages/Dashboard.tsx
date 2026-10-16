@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { dashboardApi } from '../api/client'
+import { DemoBadge, DemoDataNotice } from '../components/DemoData'
 import {
   ScoreTrendsChart,
   ModelComparisonChart,
@@ -98,6 +99,8 @@ export default function Dashboard() {
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         <p className="mt-1 text-gray-500">Overview of your LLM evaluation runs</p>
       </div>
+
+      {!!metrics?.demo_runs && <DemoDataNotice className="mb-8" />}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
@@ -281,7 +284,10 @@ export default function Dashboard() {
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-gray-900">{run.prompt_version}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-gray-900">{run.prompt_version}</p>
+                      {run.is_demo && <DemoBadge />}
+                    </div>
                     <p className="text-sm text-gray-500">
                       {run.test_case_count} test cases | {run.models.join(', ')}
                     </p>

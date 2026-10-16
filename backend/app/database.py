@@ -78,3 +78,7 @@ async def init_db():
             "ALTER TABLE IF EXISTS conversation_turns "
             "ADD COLUMN IF NOT EXISTS model_id VARCHAR(100)"
         ))
+        await conn.execute(text(
+            "ALTER TABLE IF EXISTS evaluation_runs "
+            "ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT false"
+        ))

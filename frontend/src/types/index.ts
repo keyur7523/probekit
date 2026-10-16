@@ -86,6 +86,7 @@ export interface EvaluationRun {
   test_case_count: number
   completed_count: number
   error_message: string | null
+  is_demo?: boolean
   test_case_titles?: string[]
   outputs?: EvaluationOutput[]
   comparison?: RunComparison | null

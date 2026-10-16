@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { dashboardApi, type Regression, type ComparisonResponse } from '../api/client'
+import { DemoDataNotice } from './DemoData'
 
 function DeltaIndicator({ delta, suffix = '%', inverse = false }: { delta: number; suffix?: string; inverse?: boolean }) {
   const isPositive = inverse ? delta < 0 : delta > 0
@@ -316,7 +317,7 @@ export default function VersionComparison() {
               <option value="">Select baseline...</option>
               {versions.map((v) => (
                 <option key={v.prompt_version} value={v.prompt_version}>
-                  {v.prompt_version} ({v.pass_rate}% pass)
+                  {v.prompt_version} ({v.pass_rate}% pass){v.is_demo ? ' [DEMO]' : ''}
                 </option>
               ))}
             </select>
@@ -333,7 +334,7 @@ export default function VersionComparison() {
               <option value="">Select current...</option>
               {versions.map((v) => (
                 <option key={v.prompt_version} value={v.prompt_version}>
-                  {v.prompt_version} ({v.pass_rate}% pass)
+                  {v.prompt_version} ({v.pass_rate}% pass){v.is_demo ? ' [DEMO]' : ''}
                 </option>
               ))}
             </select>
@@ -393,6 +394,11 @@ export default function VersionComparison() {
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
           <p className="text-yellow-800 text-sm">{comparison.error}</p>
         </div>
+      )}
+
+      {/* Demo Data Notice */}
+      {comparison && !comparison.error && (comparison.baseline?.is_demo || comparison.current?.is_demo) && (
+        <DemoDataNotice className="mb-6" />
       )}
 
       {/* Regression Warnings */}

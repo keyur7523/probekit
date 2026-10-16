@@ -9,8 +9,10 @@ The current state of prompt evaluation is immature. "Is this response good?" is 
 ## Features
 
 - **Multi-model evaluation** — Run the same prompt against Claude, GPT-4, and local models; track cost and latency
-- **Pre-built evaluators** — Instruction adherence, hallucination detection, output stability, refusal behavior, format consistency
-- **Human annotation UI** — Review outputs, add labels, track agreement between human and automated evaluations
+- **Pre-built evaluators** — Rule-based instruction adherence, format, and refusal checks; an LLM-judged hallucination check; lexical output stability (see [Evaluators](#evaluators))
+- **Human annotation workflow** — label model outputs and compare each automatic
+  evaluator's verdict against human labels (raw percent agreement and sample size
+  per evaluator; chance-corrected agreement is planned).
 - **Regression detection** — Compare prompt versions, flag regressions automatically
 - **Dashboard** — Visualize trends, model comparison, evaluator performance over time
 
@@ -65,6 +67,11 @@ python3 backend/scripts/seed_test_cases.py --api http://localhost:8001
 python3 backend/scripts/seed_demo_runs.py
 ```
 
+> Demo runs created by `seed_demo_runs.py` use scripted outputs and scripted
+> evaluator results to illustrate the dashboards. They are flagged as demo data,
+> shown with a "DEMO" badge, and excluded from agreement and regression metrics.
+> They are not real model results.
+
 ## API Endpoints
 
 ### Test Cases
@@ -100,8 +107,8 @@ python3 backend/scripts/seed_demo_runs.py
 - `GET /api/dashboard/evaluator-breakdown` — Evaluator summary stats
 - `GET /api/dashboard/versions` — Latest run per prompt version
 - `GET /api/dashboard/compare` — Compare two versions and flag regressions
-- `GET /api/dashboard/regressions` — Latest regressions per version
-- `GET /api/dashboard/annotation-accuracy` — Human vs evaluator agreement
+- `GET /api/dashboard/regressions` — Latest regressions per version (demo runs excluded; `?include_demo=true` to opt in)
+- `GET /api/dashboard/annotation-accuracy` — Human vs evaluator agreement (demo runs excluded; `?include_demo=true` to opt in)
 
 ## Example Usage
 
@@ -196,16 +203,18 @@ probekit/
 
 ## Evaluators
 
-I built five core evaluators based on what matters for production prompts:
+I built five core evaluators for single-turn runs, plus a verbosity evaluator for conversations. They use different methods, and only the rule-based ones are deterministic:
 
-| Evaluator | What It Measures |
-|-----------|------------------|
-| **Instruction Adherence** | Does output follow constraints? (JSON validity, required fields, length limits, forbidden terms) |
-| **Hallucination Detection** | Are claims grounded in provided context? Uses LLM-as-judge to verify factual claims |
-| **Output Stability** | Is output consistent across re-runs? Measures semantic similarity via Jaccard |
-| **Refusal Behavior** | Does model refuse appropriately? Classifies responses as refusal/abstention/clarification/answer |
-| **Format Consistency** | Does output match expected format? Validates JSON schema, markdown structure, regex patterns |
-| **Verbosity Stability** | (Conversations) Does response length drift over turns? Measures drift slope, growth ratio |
+| Evaluator | Method | What It Measures |
+|-----------|--------|------------------|
+| **Instruction Adherence** | Rule-based | Does output follow constraints? (JSON validity, required fields, length limits, forbidden terms) |
+| **Format Consistency** | Rule-based | Does output match expected format? Validates JSON schema, markdown structure, regex patterns |
+| **Refusal Behavior** | Rule-based (pattern matching) | Does model refuse appropriately? Classifies responses as refusal/abstention/clarification/answer |
+| **Hallucination Check** | LLM-judged (two-step claim extraction and verification) | Are claims grounded in provided context? Claude Sonnet 4 extracts claims, then verifies each against the context — two API calls per output, not deterministic |
+| **Output Stability** | Lexical (Jaccard word overlap) | Is output consistent across re-runs at several temperatures? Paraphrases with the same meaning can score as unstable |
+| **Verbosity Stability** | Rule-based (length statistics) | (Conversations) Does response length drift over turns? Measures drift slope, growth ratio |
+
+Because the hallucination check is an LLM judge, it should be validated against human labels (via the annotation workflow) before its verdicts are trusted.
 
 ### Adding a Custom Evaluator
 

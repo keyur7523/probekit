@@ -1,3 +1,9 @@
+"""Seed illustrative demo runs for the dashboards.
+
+Every output, evaluator result and annotation written here is scripted, not
+produced by a model. Runs are flagged ``is_demo`` and use ``demo-*`` model IDs
+so they are badged in the UI and excluded from regression and agreement metrics.
+"""
 import asyncio
 import json
 from datetime import datetime, timedelta
@@ -64,8 +70,8 @@ async def _seed() -> None:
             test_cases = existing.scalars().all()
 
         models = [
-            {"model_id": "gpt-4o", "temperature": 0.0, "max_tokens": 512},
-            {"model_id": "claude-sonnet-4-20250514", "temperature": 0.0, "max_tokens": 512},
+            {"model_id": "demo-gpt-4o", "temperature": 0.0, "max_tokens": 512},
+            {"model_id": "demo-claude", "temperature": 0.0, "max_tokens": 512},
         ]
         evaluators = [
             "instruction_adherence",
@@ -85,6 +91,7 @@ async def _seed() -> None:
                     prompt_version=version,
                     models=models,
                     status=RunStatus.COMPLETED,
+                    is_demo=True,
                     timestamp=now - offset,
                     test_case_count=len(test_cases) * len(models),
                     completed_count=len(test_cases) * len(models),

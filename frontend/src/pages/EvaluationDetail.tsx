@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { evaluationsApi, annotationsApi } from '../api/client'
+import { DemoBadge, DemoDataNotice } from '../components/DemoData'
 import type { EvaluationRun, EvaluationOutput, EvaluatorResult, Evaluator } from '../types'
 
 function StatusBadge({ status }: { status: EvaluationRun['status'] }) {
@@ -318,7 +319,10 @@ export default function EvaluationDetail() {
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{run.prompt_version}</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-gray-900">{run.prompt_version}</h1>
+              {run.is_demo && <DemoBadge />}
+            </div>
             <p className="mt-1 text-gray-500">
               {new Date(run.timestamp).toLocaleString()}
             </p>
@@ -333,6 +337,7 @@ export default function EvaluationDetail() {
             <StatusBadge status={run.status} />
           </div>
         </div>
+        {run.is_demo && <DemoDataNotice className="mt-4" />}
       </div>
 
       {/* Summary Stats */}

@@ -178,6 +178,7 @@ export interface DashboardMetrics {
   total_test_cases: number
   total_runs: number
   completed_runs: number
+  demo_runs?: number
   total_cost_usd: number
   avg_latency_ms: number
   latency_p50_ms: number
@@ -221,6 +222,7 @@ export interface RecentActivityResponse {
   activity: Array<{
     id: string
     prompt_version: string
+    is_demo?: boolean
     timestamp: string
     models: string[]
     test_case_count: number
@@ -236,6 +238,7 @@ export interface VersionInfo {
   prompt_version: string
   run_id: string
   timestamp: string
+  is_demo?: boolean
   pass_rate: number
   total_evaluations: number
   cost_usd: number
@@ -263,6 +266,7 @@ export interface ComparisonResponse {
     version: string
     run_id: string
     timestamp: string
+    is_demo?: boolean
     stats: {
       pass_rate: number
       total_evaluations: number
@@ -280,6 +284,7 @@ export interface ComparisonResponse {
     version: string
     run_id: string
     timestamp: string
+    is_demo?: boolean
     stats: {
       pass_rate: number
       total_evaluations: number

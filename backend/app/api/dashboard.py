@@ -80,6 +80,9 @@ async def get_metrics(db: AsyncSession = Depends(get_db)):
     """High-level dashboard metrics including latency percentiles."""
     total_test_cases = (await db.execute(select(func.count(TestCase.id)))).scalar() or 0
     total_runs = (await db.execute(select(func.count(EvaluationRun.id)))).scalar() or 0
+    demo_runs = (await db.execute(
+        select(func.count(EvaluationRun.id)).where(EvaluationRun.is_demo.is_(True))
+    )).scalar() or 0
     completed_runs = (await db.execute(
         select(func.count(EvaluationRun.id)).where(EvaluationRun.status == RunStatus.COMPLETED)
     )).scalar() or 0
@@ -107,6 +110,7 @@ async def get_metrics(db: AsyncSession = Depends(get_db)):
         'total_test_cases': total_test_cases,
         'total_runs': total_runs,
         'completed_runs': completed_runs,
+        'demo_runs': demo_runs,
         'total_cost_usd': round(float(total_cost), 6),
         'avg_latency_ms': round(float(avg_latency), 1),
         'latency_p50_ms': round(latency_p50, 1),
@@ -247,9 +251,12 @@ async def get_evaluator_breakdown(db: AsyncSession = Depends(get_db)):
 
 
 @router.get('/annotation-accuracy')
-async def get_annotation_accuracy(db: AsyncSession = Depends(get_db)):
+async def get_annotation_accuracy(
+    include_demo: bool = Query(False, description='Include seeded demo runs'),
+    db: AsyncSession = Depends(get_db),
+):
     """Compare evaluator results with human annotations (per evaluator)."""
-    result = await db.execute(
+    query = (
         select(HumanAnnotation, EvaluatorResult)
         .join(
             EvaluatorResult,
@@ -257,6 +264,13 @@ async def get_annotation_accuracy(db: AsyncSession = Depends(get_db)):
             (EvaluatorResult.evaluator_name == HumanAnnotation.annotation_type)
         )
     )
+    if not include_demo:
+        query = (
+            query.join(EvaluationOutput, EvaluationOutput.id == HumanAnnotation.output_id)
+            .join(EvaluationRun, EvaluationRun.id == EvaluationOutput.run_id)
+            .where(EvaluationRun.is_demo.is_(False))
+        )
+    result = await db.execute(query)
     rows = result.all()
 
     def normalize_label(label: str) -> bool | None:
@@ -346,6 +360,7 @@ async def get_recent_activity(
         activity.append({
             'id': str(run.id),
             'prompt_version': run.prompt_version,
+            'is_demo': run.is_demo,
             'test_case_count': run.test_case_count,
             'models': [m.get('model_id') for m in (run.models or [])],
             'cost_usd': stats['cost_usd'],
@@ -357,9 +372,12 @@ async def get_recent_activity(
 
 
 @router.get('/regressions')
-async def get_regressions(db: AsyncSession = Depends(get_db)):
+async def get_regressions(
+    include_demo: bool = Query(False, description='Include seeded demo runs'),
+    db: AsyncSession = Depends(get_db),
+):
     """Compare evaluator pass rates between the two most recent runs per prompt version."""
-    result = await db.execute(
+    query = (
         select(EvaluationRun)
         .where(EvaluationRun.status == RunStatus.COMPLETED)
         .options(
@@ -368,6 +386,9 @@ async def get_regressions(db: AsyncSession = Depends(get_db)):
         )
         .order_by(EvaluationRun.timestamp.desc())
     )
+    if not include_demo:
+        query = query.where(EvaluationRun.is_demo.is_(False))
+    result = await db.execute(query)
     runs = result.scalars().all()
 
     runs_by_version = defaultdict(list)
@@ -470,6 +491,7 @@ async def get_versions(db: AsyncSession = Depends(get_db)):
             'prompt_version': prompt_version,
             'run_id': str(run.id),
             'timestamp': run.timestamp,
+            'is_demo': run.is_demo,
             'pass_rate': stats['pass_rate'],
             'total_evaluations': stats['total_evaluations'],
             'cost_usd': stats['cost_usd'],
@@ -597,12 +619,14 @@ async def compare_versions(
             'version': baseline_version,
             'run_id': str(baseline_run.id),
             'timestamp': baseline_run.timestamp,
+            'is_demo': baseline_run.is_demo,
             'stats': baseline_stats,
         },
         'current': {
             'version': current_version,
             'run_id': str(current_run.id),
             'timestamp': current_run.timestamp,
+            'is_demo': current_run.is_demo,
             'stats': current_stats,
         },
         'comparison': comparison,

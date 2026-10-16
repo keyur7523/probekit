@@ -13,7 +13,7 @@ class HallucinationEvaluator(BaseEvaluator):
     """
 
     name = "hallucination"
-    description = "Detects claims not grounded in provided context"
+    description = "LLM-judged: two-step claim extraction and verification against the provided context"
 
     EXTRACTION_PROMPT = """Analyze the following response and extract all factual claims made.
 A factual claim is any statement that asserts something as true or false about the world.

@@ -169,6 +169,7 @@ async def get_evaluation_run(
         .where(EvaluationRun.prompt_version == run.prompt_version)
         .where(EvaluationRun.status == RunStatus.COMPLETED)
         .where(EvaluationRun.id != run.id)
+        .where(EvaluationRun.is_demo.is_(run.is_demo))
         .order_by(desc(EvaluationRun.timestamp))
         .options(
             selectinload(EvaluationRun.outputs)

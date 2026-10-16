@@ -32,6 +32,8 @@ class EvaluationRun(Base):
     test_case_count = Column(Integer, default=0)
     completed_count = Column(Integer, default=0)
     error_message = Column(Text, nullable=True)
+    # Seeded/illustrative runs with scripted outputs; never real model results
+    is_demo = Column(Boolean, nullable=False, default=False, server_default="false")
 
     outputs = relationship("EvaluationOutput", back_populates="run", cascade="all, delete-orphan")
 

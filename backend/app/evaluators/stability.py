@@ -15,7 +15,7 @@ class StabilityEvaluator(BaseEvaluator):
     """
 
     name = "output_stability"
-    description = "Measures consistency of outputs across multiple runs"
+    description = "Lexical stability: Jaccard word overlap across re-sampled outputs"
 
     def __init__(self, min_similarity: float = 0.7):
         """

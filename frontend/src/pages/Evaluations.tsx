@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { evaluationsApi, testCasesApi } from '../api/client'
+import { DemoBadge } from '../components/DemoData'
 import type { EvaluationRun, EvaluationRunCreate, ModelConfig, Evaluator } from '../types'
 
 function StatusBadge({ status }: { status: EvaluationRun['status'] }) {
@@ -384,12 +385,15 @@ export default function Evaluations() {
                 {runs.map((run) => (
                   <tr key={run.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <Link
-                        to={`/evaluations/${run.id}`}
-                        className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
-                      >
-                        {run.prompt_version}
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link
+                          to={`/evaluations/${run.id}`}
+                          className="text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                        >
+                          {run.prompt_version}
+                        </Link>
+                        {run.is_demo && <DemoBadge />}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <StatusBadge status={run.status} />
