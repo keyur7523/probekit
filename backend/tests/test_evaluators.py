@@ -539,3 +539,25 @@ class TestEvaluatorRegistry:
         )
         assert evaluator.require_json is True
         assert evaluator.max_length == 500
+
+
+async def test_claude_client_sends_temperature_via_extra_body(monkeypatch):
+    """anthropic 1.x rejects a temperature kwarg; it must go in extra_body."""
+    from unittest.mock import AsyncMock, MagicMock
+    from app.clients.claude import ClaudeClient
+
+    client = ClaudeClient(model_id="claude-haiku-4-5")
+    response = MagicMock()
+    response.usage.input_tokens = 10
+    response.usage.output_tokens = 5
+    response.content = [MagicMock(text="ok")]
+    create = AsyncMock(return_value=response)
+    monkeypatch.setattr(client.client.messages, "create", create)
+
+    result = await client.generate("hi", temperature=0.5, max_tokens=64)
+
+    kwargs = create.call_args.kwargs
+    assert "temperature" not in kwargs
+    assert kwargs["extra_body"] == {"temperature": 0.5}
+    assert result.content == "ok"
+    assert result.cost_usd == round(10 / 1e6 * 1.0 + 5 / 1e6 * 5.0, 6)

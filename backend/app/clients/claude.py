@@ -16,7 +16,8 @@ CLAUDE_PRICING = {
     "claude-opus-4-20250514": {"input": 15.0, "output": 75.0},
     "claude-3-opus-20240229": {"input": 15.0, "output": 75.0},
     "claude-3-opus-latest": {"input": 15.0, "output": 75.0},
-    "claude-haiku-4-5-20251001": {"input": 0.8, "output": 4.0},
+    "claude-haiku-4-5-20251001": {"input": 1.0, "output": 5.0},
+    "claude-haiku-4-5": {"input": 1.0, "output": 5.0},
     "claude-3-5-haiku-20241022": {"input": 0.8, "output": 4.0},
     "claude-3-haiku-20240307": {"input": 0.25, "output": 1.25},
 }
@@ -54,7 +55,9 @@ class ClaudeClient(BaseLLMClient):
             return await self.client.messages.create(
                 model=self.model_id,
                 max_tokens=max_tokens,
-                temperature=temperature,
+                # anthropic 1.x dropped sampling kwargs from create(); the API still accepts
+                # temperature on Claude 4.x models (Opus 4.7+ and 5.x models reject it)
+                extra_body={"temperature": temperature},
                 system=system or "",
                 messages=messages,
             )
