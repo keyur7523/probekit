@@ -1,6 +1,7 @@
 from pydantic import field_validator
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 
 class Settings(BaseSettings):
@@ -37,11 +38,25 @@ class Settings(BaseSettings):
     @field_validator("database_url")
     @classmethod
     def use_asyncpg_driver(cls, url: str) -> str:
-        """Accept plain postgres:// URLs (as Render provides) and use the asyncpg driver."""
+        """Accept libpq-style Postgres URLs (as Render and Neon provide) for the asyncpg driver.
+
+        Switches postgres:// and postgresql:// to postgresql+asyncpg://, renames sslmode to
+        asyncpg's ssl, and drops channel_binding, which asyncpg.connect() does not accept.
+        """
         for prefix in ("postgres://", "postgresql://"):
             if url.startswith(prefix):
-                return "postgresql+asyncpg://" + url[len(prefix):]
-        return url
+                url = "postgresql+asyncpg://" + url[len(prefix):]
+                break
+        if not url.startswith("postgresql+asyncpg://"):
+            return url
+
+        parts = urlsplit(url)
+        query = []
+        for key, value in parse_qsl(parts.query, keep_blank_values=True):
+            if key == "channel_binding":
+                continue
+            query.append(("ssl" if key == "sslmode" else key, value))
+        return urlunsplit(parts._replace(query=urlencode(query)))
 
     class Config:
         env_file = ".env"

@@ -251,7 +251,7 @@ EVALUATOR_REGISTRY = {
 
 ## Deployment
 
-- **Backend (Render):** `render.yaml` is a Render Blueprint that creates the `probekit` web service and a free Postgres database and wires `DATABASE_URL` between them. In the Render dashboard choose **New → Blueprint**, select this repo, and enter `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` when prompted. Plain `postgres://` URLs are converted to the asyncpg driver automatically.
+- **Backend (Render):** `render.yaml` is a Render Blueprint that creates the `probekit` web service and a free Postgres database and wires `DATABASE_URL` between them. In the Render dashboard choose **New → Blueprint**, select this repo, and enter `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` when prompted. Plain `postgres://` URLs are converted to the asyncpg driver automatically, and Neon-style `sslmode` / `channel_binding` parameters are translated, so a Neon connection string can be pasted into `DATABASE_URL` as-is.
 - **Frontend (Vercel):** set `VITE_API_BASE_URL` to the backend's `/api` URL (e.g. `https://probekit.onrender.com/api`) and make sure that origin is allowed in the CORS list in `backend/app/main.py`.
 
 Render's free web services sleep when idle (the first request takes ~1 minute), and free Postgres databases expire after 30 days.
