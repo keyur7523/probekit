@@ -1,0 +1,733 @@
+{
+  "instructions": [
+    "For each item, read the document, the question and the response.",
+    "Set \"label\" to \"faithful\" or \"hallucinated\". Leave \"reason\" empty or add a few words.",
+    "hallucinated = the response states something as fact that the document does not support: invented details, background or motives, inferred conclusions, or the wrong half of a two-part answer.",
+    "faithful = everything is in the document, or it correctly says the document does not contain the answer. Clearly marked speculation (\"likely\", \"may\") that adds no specific new fact, and \"check the documentation\" advice, are faithful.",
+    "Unsure? Pick your best label and write \"unsure\" in reason.",
+    "Please label from your own reading - do not ask an AI to fill this in, or the study measures AI vs AI."
+  ],
+  "run_id": "13373278-05fe-4dfa-9d92-5b262b69b711",
+  "items": [
+    {
+      "id": "HS-01a",
+      "output_id": "d012d338-2d5f-40fd-b8f4-c5deeb299494",
+      "document": "Harrowgate Ferry Company 2025 annual summary: The company carried 412,000 passengers, up 6% from 2024, across its three routes. The new hybrid vessel, the Merrow Lark, entered service in May and cut fuel use on the Pell Sound route by 18%. Ticket revenue was £9.3 million. The board approved a fourth route to Callis Island, to open in 2027.",
+      "question": "How much did the Merrow Lark cut fuel use on the Pell Sound route?",
+      "response": "The Merrow Lark cut fuel use on the Pell Sound route by 18%.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-01b",
+      "output_id": "8c835dfc-b56f-4fbd-810c-bdbb2794af2d",
+      "document": "Harrowgate Ferry Company 2025 annual summary: The company carried 412,000 passengers, up 6% from 2024, across its three routes. The new hybrid vessel, the Merrow Lark, entered service in May and cut fuel use on the Pell Sound route by 18%. Ticket revenue was £9.3 million. The board approved a fourth route to Callis Island, to open in 2027.",
+      "question": "How much did the Merrow Lark cost to build?",
+      "response": "The document does not specify the cost to build the Merrow Lark. However, it highlights the vessel's positive impact on fuel efficiency, reducing fuel use on the Pell Sound route by 18% since its introduction in May 2025. The addition of this hybrid vessel is part of the company's efforts to enhance service and sustainability.",
+      "label": "hallucinated",
+      "reason": "inferred company motives/efforts"
+    },
+    {
+      "id": "HS-02a",
+      "output_id": "5f44237d-5c8c-4a8c-9479-63622ca3f5c3",
+      "document": "Lumora K3 cordless drill: 18 V brushless motor, two-speed gearbox (0–450 and 0–1,800 rpm), maximum torque of 60 Nm, and a 2.0 Ah battery included. The drill weighs 1.4 kg with the battery attached. A full charge takes 45 minutes on the supplied charger. The warranty covers the tool for three years when registered online.",
+      "question": "How long does a full charge take on the supplied charger?",
+      "response": "A full charge for the Lumora K3 cordless drill takes 45 minutes on the supplied charger. This quick charging time allows for efficient use of the drill, which features an 18 V brushless motor and a maximum torque of 60 Nm.",
+      "label": "hallucinated",
+      "reason": "invented commentary about efficient use"
+    },
+    {
+      "id": "HS-02b",
+      "output_id": "7b47e17d-4502-4f36-a117-d47c9b05ed40",
+      "document": "Lumora K3 cordless drill: 18 V brushless motor, two-speed gearbox (0–450 and 0–1,800 rpm), maximum torque of 60 Nm, and a 2.0 Ah battery included. The drill weighs 1.4 kg with the battery attached. A full charge takes 45 minutes on the supplied charger. The warranty covers the tool for three years when registered online.",
+      "question": "How long does the Lumora K3 run on a single full charge?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-03a",
+      "output_id": "663c5b73-cbe8-4378-8e4d-fa1901a787e9",
+      "document": "Brenford City Council minutes, 4 March: Councillors voted 7–2 to add protected bike lanes on Aldine Road and Station Street. Construction is scheduled to start in August and last about ten weeks. Councillor Ruth Ames, who opposed the plan, cited the loss of 46 parking spaces on Station Street. A public survey had received 1,130 responses.",
+      "question": "How many parking spaces would be lost on Station Street?",
+      "response": "46 parking spaces would be lost on Station Street.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-03b",
+      "output_id": "0163b37d-78c9-4c4a-88e0-e4fcfff02a5d",
+      "document": "Brenford City Council minutes, 4 March: Councillors voted 7–2 to add protected bike lanes on Aldine Road and Station Street. Construction is scheduled to start in August and last about ten weeks. Councillor Ruth Ames, who opposed the plan, cited the loss of 46 parking spaces on Station Street. A public survey had received 1,130 responses.",
+      "question": "What share of survey respondents supported the bike lanes?",
+      "response": "The document does not specify the exact share of survey respondents who supported the bike lanes. However, given that the council voted 7–2 in favor of the bike lanes, it can be inferred that a significant majority of the councillors, and likely a majority of the survey respondents, supported the initiative.",
+      "label": "hallucinated",
+      "reason": "inferred survey results"
+    },
+    {
+      "id": "HS-04a",
+      "output_id": "1b38eee5-1bf9-4754-be28-128ff6d1244e",
+      "document": "Trial summary: In a 12-week study of 240 adults with mild insomnia, participants taking the supplement Veranol fell asleep an average of 14 minutes faster than the placebo group. Total sleep time did not differ significantly between groups. Mild headaches were the most common side effect, reported by 9% of the Veranol group. The study was run at two clinics.",
+      "question": "How much faster did the Veranol group fall asleep than the placebo group?",
+      "response": "The Veranol group fell asleep an average of 14 minutes faster than the placebo group in the 12-week study involving 240 adults with mild insomnia. While total sleep time did not show significant differences between the two groups, the Veranol supplement demonstrated a notable improvement in the time taken to fall asleep.",
+      "label": "hallucinated",
+      "reason": "subjective conclusion about notable improvement"
+    },
+    {
+      "id": "HS-04b",
+      "output_id": "100890a7-bf6d-487d-84a3-88f371437e2f",
+      "document": "Trial summary: In a 12-week study of 240 adults with mild insomnia, participants taking the supplement Veranol fell asleep an average of 14 minutes faster than the placebo group. Total sleep time did not differ significantly between groups. Mild headaches were the most common side effect, reported by 9% of the Veranol group. The study was run at two clinics.",
+      "question": "What dose of Veranol did participants take each night?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-05a",
+      "output_id": "965abf1e-4f9c-450c-beb9-38b7b9c1844c",
+      "document": "Review: Saffron & Slate opened in March on Weller Lane in a former print shop. The tasting menu has seven courses and costs £68. The standout was a smoked aubergine dish with pomegranate and tahini. Service was friendly but slow between courses. The dining room seats 34, and bookings open 30 days ahead.",
+      "question": "How many courses does the tasting menu have?",
+      "response": "The tasting menu has seven courses.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-05b",
+      "output_id": "b4287040-930b-434c-9786-703ff6133fa0",
+      "document": "Review: Saffron & Slate opened in March on Weller Lane in a former print shop. The tasting menu has seven courses and costs £68. The standout was a smoked aubergine dish with pomegranate and tahini. Service was friendly but slow between courses. The dining room seats 34, and bookings open 30 days ahead.",
+      "question": "Who is the head chef at Saffron & Slate, and how much does the tasting menu cost?",
+      "response": "The document does not specify the head chef at Saffron & Slate. However, the tasting menu at the restaurant costs £68 and features seven courses, with a notable dish being smoked aubergine with pomegranate and tahini.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-06a",
+      "output_id": "9510e5e9-5b2f-4868-8751-11366828641e",
+      "document": "Synopsis of The Glass Orchard by Mireille Tannen: After her mother's death, botanist Ines Varga returns to the family orchard in the Corrin Valley, where the trees have begun producing translucent fruit. With her estranged brother Tomas, she traces the change to a graft their grandfather made in 1951. The novel alternates between Ines's present-day chapters and her grandfather's letters.",
+      "question": "In what year did the grandfather make the graft?",
+      "response": "The grandfather made the graft in 1951. This event is significant as it leads to the transformation of the family orchard, where the trees begin producing translucent fruit, prompting Ines Varga to return and explore her family's history.",
+      "label": "hallucinated",
+      "reason": "inferred incorrect motive for returning"
+    },
+    {
+      "id": "HS-06b",
+      "output_id": "39f7acf3-b673-4ecc-a34b-e5fadedff32e",
+      "document": "Synopsis of The Glass Orchard by Mireille Tannen: After her mother's death, botanist Ines Varga returns to the family orchard in the Corrin Valley, where the trees have begun producing translucent fruit. With her estranged brother Tomas, she traces the change to a graft their grandfather made in 1951. The novel alternates between Ines's present-day chapters and her grandfather's letters.",
+      "question": "How does The Glass Orchard end?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-07a",
+      "output_id": "49cccaea-5f3c-472d-9357-0e2c4af64203",
+      "document": "Quillwave, a startup building scheduling software for veterinary clinics, has raised a $14 million Series A led by Northgate Partners. The company says it now serves 380 clinics, up from 90 a year ago. Co-founder Dana Ruel said the money will fund a mobile app and expansion into Canada. Quillwave has 41 employees.",
+      "question": "How many clinics does Quillwave serve now?",
+      "response": "Quillwave serves 380 clinics now.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-07b",
+      "output_id": "ad8b9e96-309c-4c70-86e6-e36a0218a7c9",
+      "document": "Quillwave, a startup building scheduling software for veterinary clinics, has raised a $14 million Series A led by Northgate Partners. The company says it now serves 380 clinics, up from 90 a year ago. Co-founder Dana Ruel said the money will fund a mobile app and expansion into Canada. Quillwave has 41 employees.",
+      "question": "What valuation did Quillwave receive in the Series A?",
+      "response": "The document does not specify the valuation that Quillwave received in its Series A funding round. However, the company raised $14 million, which indicates significant investor confidence in its growth potential, especially as it has expanded its client base from 90 to 380 clinics in just one year.",
+      "label": "hallucinated",
+      "reason": "inferred investor confidence"
+    },
+    {
+      "id": "HS-08a",
+      "output_id": "70691c55-0a90-4294-9244-267424304aba",
+      "document": "The Okafor Maritime Museum will open a new gallery, 'Salt and Signal', on 12 June. The gallery displays 140 objects, including a restored 1890s lighthouse lens and logbooks from the schooner Tamsin Grey. Entry to the gallery is included in general admission. The museum received a £2.1 million grant for the project.",
+      "question": "How many objects does the new gallery display?",
+      "response": "The new gallery, 'Salt and Signal', at the Okafor Maritime Museum displays 140 objects. This includes notable items such as a restored 1890s lighthouse lens and logbooks from the schooner Tamsin Grey.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-08b",
+      "output_id": "7034982d-1352-4fbd-956d-3db31ab4bd5c",
+      "document": "The Okafor Maritime Museum will open a new gallery, 'Salt and Signal', on 12 June. The gallery displays 140 objects, including a restored 1890s lighthouse lens and logbooks from the schooner Tamsin Grey. Entry to the gallery is included in general admission. The museum received a £2.1 million grant for the project.",
+      "question": "What is the price of general admission to the Okafor Maritime Museum?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-09a",
+      "output_id": "9fba5a5b-dca1-4293-b079-dc9f9eac64b3",
+      "document": "Eastmere School District proposed budget: Total spending of $86.4 million for the coming year, a 3.1% increase. The largest new item is $1.9 million to hire 22 additional reading specialists. Transportation costs rise by $640,000 because of a new bus contract. The board will vote on the budget on 18 May.",
+      "question": "How many reading specialists would the budget fund?",
+      "response": "The budget would fund 22 additional reading specialists.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-09b",
+      "output_id": "37155f82-27c8-4c1d-836f-fa1eb2dde9c7",
+      "document": "Eastmere School District proposed budget: Total spending of $86.4 million for the coming year, a 3.1% increase. The largest new item is $1.9 million to hire 22 additional reading specialists. Transportation costs rise by $640,000 because of a new bus contract. The board will vote on the budget on 18 May.",
+      "question": "What property tax increase is needed to fund the budget?",
+      "response": "The document does not specify the exact property tax increase needed to fund the proposed budget of $86.4 million for the Eastmere School District. However, given that the budget reflects a 3.1% increase from the previous year, it can be inferred that the property tax increase would need to cover this rise in spending, along with any additional costs such as the $640,000 increase in transportation expenses. The board will vote on the budget on 18 May, which may provide further details on the tax implications.",
+      "label": "hallucinated",
+      "reason": "inferred conclusions about property taxes"
+    },
+    {
+      "id": "HS-10a",
+      "output_id": "4c3ed3c7-3fa1-4e33-80bf-6c1c3dcdf820",
+      "document": "Kessel bread (makes one loaf): Combine 500 g bread flour, 350 ml warm water, 10 g salt and 7 g dried yeast. Knead for 10 minutes, then let rise for 90 minutes. Shape, place in a floured basket, and prove for 45 minutes. Bake at 230 °C for 35 minutes, adding a tray of water to the oven for the first 10 minutes.",
+      "question": "How long is the bread baked, and at what temperature?",
+      "response": "The Kessel bread is baked for 35 minutes at a temperature of 230 °C. This baking process is enhanced by adding a tray of water to the oven for the first 10 minutes, which helps create steam for a better crust.",
+      "label": "hallucinated",
+      "reason": "invented reason for adding water"
+    },
+    {
+      "id": "HS-10b",
+      "output_id": "20f376e0-e304-4354-b351-2fa559975c2d",
+      "document": "Kessel bread (makes one loaf): Combine 500 g bread flour, 350 ml warm water, 10 g salt and 7 g dried yeast. Knead for 10 minutes, then let rise for 90 minutes. Shape, place in a floured basket, and prove for 45 minutes. Bake at 230 °C for 35 minutes, adding a tray of water to the oven for the first 10 minutes.",
+      "question": "How many calories are in a slice, and how long should the dough rise before shaping?",
+      "response": "The document does not contain the answer to how many calories are in a slice. It states that the dough should rise for 90 minutes before shaping.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-11a",
+      "output_id": "c40802ea-dd46-41fd-80d1-58d2747c58db",
+      "document": "Storm Edda brought gusts of up to 112 km/h to the Varrow coast on Tuesday night. About 18,000 homes lost power, and 6,500 were still without electricity by Wednesday evening. The coastal road between Linmouth and Saye was closed after a landslip. No injuries were reported.",
+      "question": "What was the strongest gust recorded?",
+      "response": "The strongest gust recorded was up to 112 km/h.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-11b",
+      "output_id": "558b3b8a-a284-442f-9fbd-18ebf942fac7",
+      "document": "Storm Edda brought gusts of up to 112 km/h to the Varrow coast on Tuesday night. About 18,000 homes lost power, and 6,500 were still without electricity by Wednesday evening. The coastal road between Linmouth and Saye was closed after a landslip. No injuries were reported.",
+      "question": "What was the estimated cost of the storm damage?",
+      "response": "The document does not provide specific information regarding the estimated cost of the storm damage caused by Storm Edda. However, it details significant impacts, including power outages affecting 18,000 homes, with 6,500 still without electricity the following evening, and the closure of a coastal road due to a landslip. These factors suggest that the storm likely resulted in considerable economic repercussions, although an exact figure is not mentioned.",
+      "label": "hallucinated",
+      "reason": "inferred economic repercussions"
+    },
+    {
+      "id": "HS-12a",
+      "output_id": "4e46d4e2-5ff8-4877-9e42-c316650b523a",
+      "document": "The Riverton Kestrels finished the season 21–13, second in the Northern Division. Forward Jalen Okoro led the team with 19.4 points per game. The Kestrels lost the conference semi-final 3–1 to the Delmar Owls. Home attendance averaged 7,850, a club record.",
+      "question": "Who did the Kestrels lose to in the conference semi-final?",
+      "response": "The Riverton Kestrels lost to the Delmar Owls in the conference semi-final, with a series score of 3–1. This defeat came after a successful season where the Kestrels finished with a record of 21–13, placing second in the Northern Division.",
+      "label": "hallucinated",
+      "reason": "unsure - inferred it was a successful season"
+    },
+    {
+      "id": "HS-12b",
+      "output_id": "9e320e82-bc19-4044-b067-0ce42f463632",
+      "document": "The Riverton Kestrels finished the season 21–13, second in the Northern Division. Forward Jalen Okoro led the team with 19.4 points per game. The Kestrels lost the conference semi-final 3–1 to the Delmar Owls. Home attendance averaged 7,850, a club record.",
+      "question": "Who coached the Riverton Kestrels this season?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-13a",
+      "output_id": "b9c01bba-658b-47f4-ae59-868a774ac98a",
+      "document": "Tessel 4.2 release notes: Adds offline mode for the mobile app, so drafts sync when a connection returns. Exports to PDF are about 40% faster. The minimum supported Android version is now 11. Fixes a bug that duplicated comments in shared folders. Tessel 4.0 and earlier will stop receiving security updates on 1 September.",
+      "question": "What is the minimum supported Android version in Tessel 4.2?",
+      "response": "The minimum supported Android version in Tessel 4.2 is 11.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-13b",
+      "output_id": "6f5e2058-f43a-4b8d-bfd6-cbedfbb6c78a",
+      "document": "Tessel 4.2 release notes: Adds offline mode for the mobile app, so drafts sync when a connection returns. Exports to PDF are about 40% faster. The minimum supported Android version is now 11. Fixes a bug that duplicated comments in shared folders. Tessel 4.0 and earlier will stop receiving security updates on 1 September.",
+      "question": "What is the minimum supported iOS version in Tessel 4.2?",
+      "response": "The document does not specify the minimum supported iOS version for Tessel 4.2. However, it does mention that the minimum supported Android version is now 11, indicating a focus on modern operating systems. Typically, software updates aim to support recent versions of iOS, so it is likely that Tessel 4.2 supports iOS versions that are relatively current, but without specific details provided, an exact version cannot be determined.",
+      "label": "hallucinated",
+      "reason": "inferred iOS support"
+    },
+    {
+      "id": "HS-14a",
+      "output_id": "63272079-2c6b-4fc7-8344-92656b0ae9f9",
+      "document": "Archaeologists at the Varnholt site have uncovered the foundations of a timber hall about 28 metres long, dated by radiocarbon to around 640 AD. Finds include a bronze buckle, glass beads and 220 fragments of pottery. Excavation will continue next summer, funded by the regional heritage trust.",
+      "question": "How long is the timber hall?",
+      "response": "The timber hall uncovered at the Varnholt site is approximately 28 metres long. This structure has been dated to around 640 AD and is part of an archaeological excavation that has also revealed various artifacts, including a bronze buckle, glass beads, and numerous pottery fragments.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-14b",
+      "output_id": "6713cff0-779a-45f8-bea7-6d789339f8ce",
+      "document": "Archaeologists at the Varnholt site have uncovered the foundations of a timber hall about 28 metres long, dated by radiocarbon to around 640 AD. Finds include a bronze buckle, glass beads and 220 fragments of pottery. Excavation will continue next summer, funded by the regional heritage trust.",
+      "question": "Who led the excavation at the Varnholt site?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-15a",
+      "output_id": "fcc4ea27-2682-431b-934e-c504acb8fbd2",
+      "document": "Corvane Logistics leave policy: Full-time employees receive 25 days of paid annual leave plus public holidays. Up to five unused days can be carried into the next year. Parental leave is 20 weeks at full pay for the primary carer. Leave requests longer than two weeks need manager approval at least a month in advance.",
+      "question": "How many days of paid annual leave do full-time employees get?",
+      "response": "Full-time employees receive 25 days of paid annual leave.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-15b",
+      "output_id": "a3f912e8-ffd7-481a-9ab2-d370680e23f9",
+      "document": "Corvane Logistics leave policy: Full-time employees receive 25 days of paid annual leave plus public holidays. Up to five unused days can be carried into the next year. Parental leave is 20 weeks at full pay for the primary carer. Leave requests longer than two weeks need manager approval at least a month in advance.",
+      "question": "How many paid sick days do employees get, and how many unused leave days can be carried over?",
+      "response": "The document does not specify the number of paid sick days employees receive. However, it states that full-time employees can carry over up to five unused annual leave days into the next year.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-16a",
+      "output_id": "ba14d88b-b3d4-426f-9353-9c58a206a373",
+      "document": "Duvessa Island tour, day 3: Breakfast at the hotel, then a 9 a.m. boat to the sea caves at Port Ilse. After lunch in the village of Merrin, the group hikes the 6 km clifftop path to the lighthouse. Dinner is at the hotel. The hike is rated moderate and includes 300 metres of climbing.",
+      "question": "How long is the clifftop hike?",
+      "response": "The clifftop hike is 6 kilometers long. It is rated as moderate difficulty and involves an elevation gain of 300 meters.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-16b",
+      "output_id": "30c85af6-0959-4024-8e31-bec487dd1ff8",
+      "document": "Duvessa Island tour, day 3: Breakfast at the hotel, then a 9 a.m. boat to the sea caves at Port Ilse. After lunch in the village of Merrin, the group hikes the 6 km clifftop path to the lighthouse. Dinner is at the hotel. The hike is rated moderate and includes 300 metres of climbing.",
+      "question": "What is the total price of the Duvessa Island tour?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-17a",
+      "output_id": "7699cf62-bb6f-4687-95fb-aae08cf2f88c",
+      "document": "The annual bird survey at Malloch Wetlands recorded 74 species, two more than last year. Volunteers counted 1,240 lapwings, the highest number since counts began in 2009. Bitterns were heard booming at three locations. The survey took place over the weekend of 10–11 May with 36 volunteers.",
+      "question": "How many lapwings were counted?",
+      "response": "1,240 lapwings were counted.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-17b",
+      "output_id": "24ee74f2-7234-4dbe-b4df-9a2bd3114ad9",
+      "document": "The annual bird survey at Malloch Wetlands recorded 74 species, two more than last year. Volunteers counted 1,240 lapwings, the highest number since counts began in 2009. Bitterns were heard booming at three locations. The survey took place over the weekend of 10–11 May with 36 volunteers.",
+      "question": "How many bitterns were counted at Malloch Wetlands?",
+      "response": "The document does not specify the exact number of bitterns counted at Malloch Wetlands; however, it mentions that bitterns were heard booming at three locations during the annual bird survey. This indicates their presence but does not provide a specific count.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-18a",
+      "output_id": "f7bc47b6-40cc-42a6-92d6-820e8c846a14",
+      "document": "Lanternfall Festival returns to Edgeby Park on 22–24 August. Headliners are the Veil Choir, Dorran Hale and Morning Static. Weekend tickets cost £145 and day tickets £65. Children under 12 go free with a paying adult. The festival is cashless this year.",
+      "question": "How much does a weekend ticket cost?",
+      "response": "A weekend ticket for the Lanternfall Festival costs £145. The festival will take place at Edgeby Park from 22–24 August and features headliners such as the Veil Choir, Dorran Hale, and Morning Static.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-18b",
+      "output_id": "5650d714-5744-49af-b556-d90b9fca3f95",
+      "document": "Lanternfall Festival returns to Edgeby Park on 22–24 August. Headliners are the Veil Choir, Dorran Hale and Morning Static. Weekend tickets cost £145 and day tickets £65. Children under 12 go free with a paying adult. The festival is cashless this year.",
+      "question": "How many people attended Lanternfall Festival last year?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-19a",
+      "output_id": "4127f9cb-10b4-4c72-b2af-5ad43325b838",
+      "document": "In Halden v. Pryce Construction, the court found that Pryce breached its contract by finishing the warehouse 19 weeks late. The judge awarded Halden £410,000 in damages for lost rental income. A claim for defective drainage was dismissed for lack of evidence. Pryce has 28 days to appeal.",
+      "question": "How late was the warehouse finished?",
+      "response": "The warehouse was finished 19 weeks late.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-19b",
+      "output_id": "f09162a3-b38b-44ec-a587-0e426284464f",
+      "document": "In Halden v. Pryce Construction, the court found that Pryce breached its contract by finishing the warehouse 19 weeks late. The judge awarded Halden £410,000 in damages for lost rental income. A claim for defective drainage was dismissed for lack of evidence. Pryce has 28 days to appeal.",
+      "question": "What did Halden originally claim in damages?",
+      "response": "Halden originally claimed damages for lost rental income due to Pryce Construction finishing the warehouse 19 weeks late. The court awarded Halden £410,000 in damages specifically for this loss. Additionally, a separate claim for defective drainage was dismissed due to insufficient evidence.",
+      "label": "hallucinated",
+      "reason": "infers original claim details"
+    },
+    {
+      "id": "HS-20a",
+      "output_id": "53b9958d-42e9-4f84-b4c4-cca13b633d40",
+      "document": "Lease, clause 7: The tenant may end the lease early by giving three months' written notice after the first twelve months. Rent increases are limited to once a year and must not exceed 4%. The tenant is responsible for minor repairs costing under £150. Pets are allowed with the landlord's written consent.",
+      "question": "What is the maximum annual rent increase?",
+      "response": "The maximum annual rent increase is capped at 4%. This means that once a year, the landlord can raise the rent, but the increase cannot exceed this percentage.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-20b",
+      "output_id": "b168630c-19ff-4756-82e8-af34aa5a25b8",
+      "document": "Lease, clause 7: The tenant may end the lease early by giving three months' written notice after the first twelve months. Rent increases are limited to once a year and must not exceed 4%. The tenant is responsible for minor repairs costing under £150. Pets are allowed with the landlord's written consent.",
+      "question": "How much is the security deposit, and how much notice is needed to end the lease early?",
+      "response": "The document does not contain information about the security deposit. It states that the tenant may end the lease early by giving three months' written notice after the first twelve months.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-21a",
+      "output_id": "b8a9020e-21f0-4a3f-8235-1bed037cb727",
+      "document": "The Perrin-2 satellite launched on 3 February and reached its 540 km orbit after nine days. Its main instrument maps soil moisture at 1 km resolution. The mission is planned to last five years. First science data is expected in late April after instrument calibration.",
+      "question": "What is the satellite's orbital altitude?",
+      "response": "The satellite's orbital altitude is 540 km.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-21b",
+      "output_id": "92f21a99-9fbb-40fc-8730-b0abf2b15404",
+      "document": "The Perrin-2 satellite launched on 3 February and reached its 540 km orbit after nine days. Its main instrument maps soil moisture at 1 km resolution. The mission is planned to last five years. First science data is expected in late April after instrument calibration.",
+      "question": "What rocket launched the Perrin-2 satellite?",
+      "response": "The document does not specify which rocket launched the Perrin-2 satellite. However, it provides details about the satellite's launch date, its orbit, and its mission objectives, indicating that it was successfully placed into a 540 km orbit after nine days of deployment.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-22a",
+      "output_id": "6e266ffd-ddb0-4d9a-b605-ec7e3fd87cb0",
+      "document": "Ashby Library reopens on 2 October after an 18-month renovation. The building now has a children's wing, 12 bookable study rooms and step-free access to every floor. The renovation cost £4.8 million. Opening hours are extended to 8 p.m. on weekdays.",
+      "question": "How many bookable study rooms are there?",
+      "response": "There are 12 bookable study rooms in the Ashby Library, which has recently reopened after an 18-month renovation. The renovation, costing £4.8 million, also included the addition of a children's wing and improved accessibility with step-free access to every floor.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-22b",
+      "output_id": "6cf0a687-dc64-4ab3-89e5-85b9db943bd7",
+      "document": "Ashby Library reopens on 2 October after an 18-month renovation. The building now has a children's wing, 12 bookable study rooms and step-free access to every floor. The renovation cost £4.8 million. Opening hours are extended to 8 p.m. on weekdays.",
+      "question": "Which architecture firm designed the Ashby Library renovation?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-23a",
+      "output_id": "7fea1a4e-3fda-4ac5-bccd-37604669c4f5",
+      "document": "The Sierra Valen coffee cooperative harvested 310 tonnes this season, down 12% because of a dry spring. Its 180 member farms grow mainly Caturra and Bourbon varieties. The cooperative was certified organic in 2022. It plans to build a new drying facility next year.",
+      "question": "By how much did the harvest fall this season?",
+      "response": "The harvest fell by 12% this season.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-23b",
+      "output_id": "a360c1ff-5e93-4bb1-8e47-69eea157810a",
+      "document": "The Sierra Valen coffee cooperative harvested 310 tonnes this season, down 12% because of a dry spring. Its 180 member farms grow mainly Caturra and Bourbon varieties. The cooperative was certified organic in 2022. It plans to build a new drying facility next year.",
+      "question": "What price per kilo did the cooperative get for its coffee?",
+      "response": "The document does not specify the price per kilo that the Sierra Valen coffee cooperative received for its coffee. However, given that the cooperative harvested 310 tonnes this season and is certified organic, it is likely that they received a premium price compared to conventional coffee, which typically ranges from $2 to $4 per kilo for organic varieties.",
+      "label": "hallucinated",
+      "reason": "invented price facts"
+    },
+    {
+      "id": "HS-24a",
+      "output_id": "68acb45b-785e-4bbc-8459-20922a1d7f97",
+      "document": "Marlow Motors is recalling 8,200 Marlow E4 electric cars built between June and October 2025. A faulty connector can cause the rear camera display to go blank. Owners will be contacted by letter, and dealers will replace the connector free of charge. No accidents have been linked to the fault.",
+      "question": "How many cars are being recalled?",
+      "response": "Marlow Motors is recalling 8,200 Marlow E4 electric cars that were built between June and October 2025. The recall is due to a faulty connector that can cause the rear camera display to go blank, although no accidents have been linked to this issue.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-24b",
+      "output_id": "180c76cf-9b21-4ffd-853f-a9be3ca0b03b",
+      "document": "Marlow Motors is recalling 8,200 Marlow E4 electric cars built between June and October 2025. A faulty connector can cause the rear camera display to go blank. Owners will be contacted by letter, and dealers will replace the connector free of charge. No accidents have been linked to the fault.",
+      "question": "How long does the connector replacement take at a dealer?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-25a",
+      "output_id": "fe1578e1-864b-4d97-a99b-3c67d15b1a84",
+      "document": "A study of 1,600 employees at Fenwright Insurance compared productivity before and after the company moved to three office days a week. Completed claims per employee rose 4% over the following year. Staff turnover fell from 17% to 11%. The researchers noted that the results may not apply to other industries.",
+      "question": "What happened to staff turnover?",
+      "response": "Staff turnover fell from 17% to 11%.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-25b",
+      "output_id": "19ce4706-7741-4950-9431-810ec3f095fc",
+      "document": "A study of 1,600 employees at Fenwright Insurance compared productivity before and after the company moved to three office days a week. Completed claims per employee rose 4% over the following year. Staff turnover fell from 17% to 11%. The researchers noted that the results may not apply to other industries.",
+      "question": "Who funded the Fenwright study, and how many employees did it include?",
+      "response": "The document does not specify who funded the Fenwright study, but it included 1,600 employees at Fenwright Insurance. The study examined productivity changes after the company implemented a three-office-days-a-week policy.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-26a",
+      "output_id": "54e2d66a-588b-4fb0-a232-4ad42dfa1905",
+      "document": "Construction of the new Calder Street bridge will begin in January and take about two years. The steel arch bridge will have two traffic lanes, a separated cycle path and wider footpaths. The project budget is £31 million. During construction, traffic will be diverted via Mill Road.",
+      "question": "What is the project budget?",
+      "response": "The project budget for the construction of the new Calder Street bridge is £31 million. This budget will cover the development of the steel arch bridge, which will feature two traffic lanes, a separated cycle path, and wider footpaths, with construction expected to last about two years starting in January.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-26b",
+      "output_id": "697643f5-def9-41ce-8649-9125c6454765",
+      "document": "Construction of the new Calder Street bridge will begin in January and take about two years. The steel arch bridge will have two traffic lanes, a separated cycle path and wider footpaths. The project budget is £31 million. During construction, traffic will be diverted via Mill Road.",
+      "question": "What is the length of the new Calder Street bridge?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-27a",
+      "output_id": "14613011-5faf-4357-b97e-05ba7bb9dae5",
+      "document": "Brightwater Estate 2021 Pinot Noir: Grown on clay soils at 220 metres, aged 11 months in French oak, 30% of it new. Notes of red cherry, rose petal and a hint of clove. Alcohol 13.2%. 4,100 bottles produced. Best drunk between 2024 and 2030.",
+      "question": "How long was the wine aged in oak?",
+      "response": "The wine was aged for 11 months in oak.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-27b",
+      "output_id": "f44ded15-5e45-4f19-8ac4-b352ed11b402",
+      "document": "Brightwater Estate 2021 Pinot Noir: Grown on clay soils at 220 metres, aged 11 months in French oak, 30% of it new. Notes of red cherry, rose petal and a hint of clove. Alcohol 13.2%. 4,100 bottles produced. Best drunk between 2024 and 2030.",
+      "question": "What score did critics give the Brightwater Estate 2021 Pinot Noir?",
+      "response": "The document does not provide specific information about the scores given by critics for the Brightwater Estate 2021 Pinot Noir. However, it highlights the wine's characteristics, such as its notes of red cherry, rose petal, and clove, as well as its aging process and production details, which may suggest a quality that could be well-received by critics.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-28a",
+      "output_id": "5bc393c1-cf6f-4da8-8bab-ec47baa37781",
+      "document": "Odile Ferrant (1874–1939) was an engineer from Lyonnet who designed an early electric loom controller, patented in 1908. She later ran a weaving school that trained more than 600 students. Her notebooks are held in the Lyonnet municipal archive.",
+      "question": "In what year was the loom controller patented?",
+      "response": "The loom controller designed by Odile Ferrant was patented in 1908. This innovation contributed to advancements in textile manufacturing and showcased her engineering skills during a time when women were often underrepresented in technical fields.",
+      "label": "hallucinated",
+      "reason": "invented historical context"
+    },
+    {
+      "id": "HS-28b",
+      "output_id": "ceb30be3-9ba6-4c87-b8ec-b9d48400ddf2",
+      "document": "Odile Ferrant (1874–1939) was an engineer from Lyonnet who designed an early electric loom controller, patented in 1908. She later ran a weaving school that trained more than 600 students. Her notebooks are held in the Lyonnet municipal archive.",
+      "question": "Where did Odile Ferrant study engineering?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-29a",
+      "output_id": "406672ad-2082-4fe9-a2f6-c4e74cb21507",
+      "document": "HomeSure Basic policy summary: Covers buildings up to £400,000 and contents up to £50,000. The standard excess is £250, rising to £1,000 for subsidence claims. Accidental damage cover is an optional extra. Claims must be reported within 30 days.",
+      "question": "What is the excess for subsidence claims?",
+      "response": "The excess for subsidence claims is £1,000.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-29b",
+      "output_id": "b4c2db60-6a6c-48e7-898a-3347a24a86a5",
+      "document": "HomeSure Basic policy summary: Covers buildings up to £400,000 and contents up to £50,000. The standard excess is £250, rising to £1,000 for subsidence claims. Accidental damage cover is an optional extra. Claims must be reported within 30 days.",
+      "question": "What is the monthly premium for the HomeSure Basic policy?",
+      "response": "The document does not specify the monthly premium for the HomeSure Basic policy. However, it outlines key coverage details, including building coverage up to £400,000 and contents coverage up to £50,000, along with an excess of £250, which increases to £1,000 for subsidence claims. To determine the monthly premium, one would typically need to contact the insurance provider directly or refer to their pricing schedule.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-30a",
+      "output_id": "aec58080-93bf-4687-b2a0-14562e1f9446",
+      "document": "Westbury General Hospital's quarterly report shows the median emergency department wait fell to 3 hours 10 minutes, from 3 hours 50 minutes. The hospital added 14 beds to its acute medical unit in March. Planned surgery cancellations rose to 6% because of staff shortages.",
+      "question": "How many beds were added to the acute medical unit?",
+      "response": "Westbury General Hospital added 14 beds to its acute medical unit in March. This increase in capacity likely contributed to the improvement in emergency department wait times, which decreased from 3 hours 50 minutes to 3 hours 10 minutes.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-30b",
+      "output_id": "37c15d2d-f4fb-485f-ad09-a2e19105fa64",
+      "document": "Westbury General Hospital's quarterly report shows the median emergency department wait fell to 3 hours 10 minutes, from 3 hours 50 minutes. The hospital added 14 beds to its acute medical unit in March. Planned surgery cancellations rose to 6% because of staff shortages.",
+      "question": "How many patients did the emergency department treat this quarter, and what was the median wait?",
+      "response": "The document does not contain the number of patients treated in the emergency department this quarter. It states that the median emergency department wait fell to 3 hours 10 minutes.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-31a",
+      "output_id": "5df256a8-a30f-48bf-a796-de5b27027493",
+      "document": "Review of Hollow Meridian: This puzzle adventure follows a cartographer mapping a city that rearranges itself each night. The hand-drawn art is beautiful, and the puzzles get steadily harder across five districts. The main story takes about 14 hours. The final district's puzzles felt unfair. Score: 8/10.",
+      "question": "How long does the main story take?",
+      "response": "The main story takes about 14 hours.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-31b",
+      "output_id": "465fa312-b68a-4ccc-a01b-4bfd13598ac0",
+      "document": "Review of Hollow Meridian: This puzzle adventure follows a cartographer mapping a city that rearranges itself each night. The hand-drawn art is beautiful, and the puzzles get steadily harder across five districts. The main story takes about 14 hours. The final district's puzzles felt unfair. Score: 8/10.",
+      "question": "Which studio developed Hollow Meridian?",
+      "response": "The document does not specify which studio developed Hollow Meridian. However, given the game's unique premise and artistic style, it is likely that it was created by an indie studio known for innovative puzzle design and hand-drawn art.",
+      "label": "hallucinated",
+      "reason": "invented detail about an indie studio"
+    },
+    {
+      "id": "HS-32a",
+      "output_id": "c02f45ee-a910-46ce-b38e-0554d6b3be3d",
+      "document": "Pellbrook Zoo has announced the birth of a red panda cub, the first born at the zoo in nine years. The female cub was born on 17 June to parents Mika and Rowan. Keepers say she is healthy and will stay in the nest box for about three months. A public naming vote opens in September.",
+      "question": "When was the cub born?",
+      "response": "The red panda cub at Pellbrook Zoo was born on 17 June. This is significant as it marks the first red panda birth at the zoo in nine years.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-32b",
+      "output_id": "9611d472-c8db-4ebd-bce9-24f353466975",
+      "document": "Pellbrook Zoo has announced the birth of a red panda cub, the first born at the zoo in nine years. The female cub was born on 17 June to parents Mika and Rowan. Keepers say she is healthy and will stay in the nest box for about three months. A public naming vote opens in September.",
+      "question": "How much did the cub weigh at birth?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-33a",
+      "output_id": "d087ab8e-1a4f-4b61-b564-08ddfbedd938",
+      "document": "Pell County Water will raise residential rates by 7.5% from 1 April. The average household bill will rise by about £3.40 a month. The utility says the money will fund replacing 40 km of ageing pipes over five years. Customers on the low-income tariff are exempt from the increase.",
+      "question": "How much will the average household bill rise each month?",
+      "response": "The average household bill will rise by about £3.40 a month.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-33b",
+      "output_id": "9dd1920c-7f5e-4096-8778-3c21cc518c28",
+      "document": "Pell County Water will raise residential rates by 7.5% from 1 April. The average household bill will rise by about £3.40 a month. The utility says the money will fund replacing 40 km of ageing pipes over five years. Customers on the low-income tariff are exempt from the increase.",
+      "question": "How many households does Pell County Water serve?",
+      "response": "The document does not specify the exact number of households served by Pell County Water. However, it mentions that the average household bill will increase by about £3.40 a month, indicating that the utility serves a significant number of residential customers who will be affected by the rate increase.",
+      "label": "hallucinated",
+      "reason": "inferred conclusion about significant number"
+    },
+    {
+      "id": "HS-34a",
+      "output_id": "bad9ac26-13ab-4255-b928-a6fa84f9f91a",
+      "document": "The language app Parlee has launched a conversation mode in which learners speak with an AI tutor about everyday topics. The mode is available in Spanish, French and Japanese, with German planned for next year. It is included in the Parlee Plus subscription, which costs £8.99 a month.",
+      "question": "Which languages does the conversation mode support?",
+      "response": "The conversation mode of the Parlee language app currently supports Spanish, French, and Japanese. Additionally, German is planned to be added next year. This feature is part of the Parlee Plus subscription, which costs £8.99 a month.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-34b",
+      "output_id": "107c6207-e027-425a-aa00-ecb79e670de7",
+      "document": "The language app Parlee has launched a conversation mode in which learners speak with an AI tutor about everyday topics. The mode is available in Spanish, French and Japanese, with German planned for next year. It is included in the Parlee Plus subscription, which costs £8.99 a month.",
+      "question": "How many users does Parlee have?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-35a",
+      "output_id": "89ad68af-4ff8-4a41-a9e9-48765fe3eeef",
+      "document": "Grey Fell Ultra results: Sanne Holt won the 80 km race in 8 hours 41 minutes, a course record. Theo Marsh was second in 8:57. Of 312 starters, 251 finished. Heavy rain on the second climb led organisers to close the summit checkpoint for an hour.",
+      "question": "What was the winning time?",
+      "response": "The winning time was 8 hours 41 minutes.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-35b",
+      "output_id": "33ff0dc0-202a-45fc-b360-9fdd4b3d5c20",
+      "document": "Grey Fell Ultra results: Sanne Holt won the 80 km race in 8 hours 41 minutes, a course record. Theo Marsh was second in 8:57. Of 312 starters, 251 finished. Heavy rain on the second climb led organisers to close the summit checkpoint for an hour.",
+      "question": "What prize money did the winner receive, and how many runners finished?",
+      "response": "The document does not specify the prize money that the winner, Sanne Holt, received for her victory in the Grey Fell Ultra. However, it does state that out of 312 starters, 251 runners finished the race.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-36a",
+      "output_id": "e14ebea7-c8b8-4cc1-b3b7-89941a7051f0",
+      "document": "Incident report, Kelso Plastics plant: On 9 September a conveyor belt motor overheated and caused a small fire in line 3. Staff evacuated within four minutes, and the fire was put out by the on-site team. One worker was treated for smoke inhalation. Line 3 will stay closed for inspection for two weeks.",
+      "question": "How long will line 3 stay closed?",
+      "response": "Line 3 will stay closed for inspection for two weeks following the incident on 9 September, when a conveyor belt motor overheated and caused a small fire. The closure is necessary to ensure safety and assess any damage before resuming operations.",
+      "label": "hallucinated",
+      "reason": "invented background for the closure"
+    },
+    {
+      "id": "HS-36b",
+      "output_id": "97731648-2f75-414e-ab12-279cedcfae8a",
+      "document": "Incident report, Kelso Plastics plant: On 9 September a conveyor belt motor overheated and caused a small fire in line 3. Staff evacuated within four minutes, and the fire was put out by the on-site team. One worker was treated for smoke inhalation. Line 3 will stay closed for inspection for two weeks.",
+      "question": "What caused the conveyor belt motor to overheat?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-37a",
+      "output_id": "13aa1221-1bf9-45a4-8915-373ace246313",
+      "document": "The Hartwell Children's Trust raised £286,000 at its spring appeal, beating its £250,000 target. The money will fund a second respite house for families of children with complex medical needs. More than 1,900 people donated. The largest single gift was £20,000 from a local engineering firm.",
+      "question": "How much did the spring appeal raise?",
+      "response": "The spring appeal raised £286,000.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-37b",
+      "output_id": "3773227c-2511-40e3-9f77-613f44728967",
+      "document": "The Hartwell Children's Trust raised £286,000 at its spring appeal, beating its £250,000 target. The money will fund a second respite house for families of children with complex medical needs. More than 1,900 people donated. The largest single gift was £20,000 from a local engineering firm.",
+      "question": "Which engineering firm made the largest single gift?",
+      "response": "The document does not specify the name of the local engineering firm that made the largest single gift of £20,000 to the Hartwell Children's Trust. However, this significant contribution was part of a successful spring appeal that raised £286,000 to fund a second respite house for families of children with complex medical needs.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-38a",
+      "output_id": "48a6bfb5-40a1-4e10-a596-e2d2ef451bf1",
+      "document": "Astronomers at the Carrow Ridge Observatory have reported a new comet, designated C/2026 K4. It was first seen on 2 May at magnitude 17. The comet is expected to reach its closest point to the Sun in March 2027. Its orbit suggests it comes from the outer Oort cloud.",
+      "question": "When is the comet expected to reach its closest point to the Sun?",
+      "response": "The comet C/2026 K4 is expected to reach its closest point to the Sun in March 2027. This comet was first observed on 2 May at a magnitude of 17 and is believed to originate from the outer Oort cloud.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-38b",
+      "output_id": "694999b8-ebba-4df1-9beb-a5347fdbf20a",
+      "document": "Astronomers at the Carrow Ridge Observatory have reported a new comet, designated C/2026 K4. It was first seen on 2 May at magnitude 17. The comet is expected to reach its closest point to the Sun in March 2027. Its orbit suggests it comes from the outer Oort cloud.",
+      "question": "Who discovered comet C/2026 K4?",
+      "response": "The document does not contain the answer.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-39a",
+      "output_id": "5de58d4f-5d78-4f2f-bbb1-f61988b68c29",
+      "document": "Saltmarsh is a board game for two to four players aged ten and up. Players build salt pans along a shared coastline and sell salt at a market whose prices change each round. A game lasts eight rounds, and the player with the most coins wins. A typical game takes 45–60 minutes.",
+      "question": "How many rounds does a game last?",
+      "response": "A game lasts eight rounds.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-39b",
+      "output_id": "62b16d95-0d5a-410d-a4ff-0fcac9260b78",
+      "document": "Saltmarsh is a board game for two to four players aged ten and up. Players build salt pans along a shared coastline and sell salt at a market whose prices change each round. A game lasts eight rounds, and the player with the most coins wins. A typical game takes 45–60 minutes.",
+      "question": "Who designed Saltmarsh?",
+      "response": "The document does not specify the designer of Saltmarsh. However, it is common for board games to be created by individual designers or teams, and this information can typically be found on the game's packaging or official website.",
+      "label": "faithful",
+      "reason": ""
+    },
+    {
+      "id": "HS-40a",
+      "output_id": "d4f721f0-3a23-4cbf-86a4-cb99dd64f0ee",
+      "document": "Aerovant will launch a daily route between Brisport and Valencia from 6 May, using an Airbus A220. One-way fares start at £59. The flight time is about two hours 15 minutes. The airline expects to carry 70,000 passengers on the route in its first year.",
+      "question": "What aircraft will Aerovant use on the route?",
+      "response": "Aerovant will use an Airbus A220 for its daily route between Brisport and Valencia, which is set to launch on 6 May. This aircraft is chosen for its efficiency and comfort, contributing to a flight time of approximately two hours and 15 minutes.",
+      "label": "hallucinated",
+      "reason": "invented motive for choosing aircraft"
+    },
+    {
+      "id": "HS-40b",
+      "output_id": "f85b6de1-179d-4eb2-8a07-b4dba194f7fd",
+      "document": "Aerovant will launch a daily route between Brisport and Valencia from 6 May, using an Airbus A220. One-way fares start at £59. The flight time is about two hours 15 minutes. The airline expects to carry 70,000 passengers on the route in its first year.",
+      "question": "What time does the daily flight depart from Brisport, and what aircraft will it use?",
+      "response": "The document does not contain the answer.",
+      "label": "hallucinated",
+      "reason": "wrong half of a two-part answer"
+    }
+  ]
+}

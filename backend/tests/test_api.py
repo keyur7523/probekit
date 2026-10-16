@@ -465,3 +465,32 @@ async def test_run_detail_outputs_include_question_and_document(client: AsyncCli
     assert output["test_case_title"] == "HS-01a"
     assert output["test_case_input"] == "Question: Q?"
     assert output["test_case_context"] == "The document."
+
+
+async def test_evaluate_in_background_returns_immediately(client: AsyncClient, test_session, monkeypatch):
+    import uuid
+    from app.api import evaluations as evaluations_api
+    from app.models import EvaluationRun, RunStatus
+
+    calls = []
+
+    async def fake_background(run_id, evaluator_names):
+        calls.append((run_id, evaluator_names))
+
+    monkeypatch.setattr(evaluations_api, "run_evaluators_background", fake_background)
+    run = EvaluationRun(prompt_version="v1", models=[{"model_id": "m"}], status=RunStatus.COMPLETED)
+    test_session.add(run)
+    await test_session.commit()
+
+    response = await client.post(
+        f"/api/evaluations/runs/{run.id}/evaluate",
+        params={"evaluators": ["hallucination"], "background": True},
+    )
+    assert response.status_code == 200
+    assert response.json()["status"] == "started"
+    assert calls == [(run.id, ["hallucination"])]
+
+    missing = await client.post(
+        f"/api/evaluations/runs/{uuid.uuid4()}/evaluate", params={"evaluators": ["hallucination"], "background": True},
+    )
+    assert missing.status_code == 404

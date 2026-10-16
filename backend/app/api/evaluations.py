@@ -331,7 +331,9 @@ async def list_available_evaluators():
 @router.post("/runs/{run_id}/evaluate")
 async def run_evaluators(
     run_id: UUID,
+    background_tasks: BackgroundTasks,
     evaluators: list[str] = Query(default=["instruction_adherence", "format_consistency"]),
+    background: bool = Query(False, description="Return immediately and run evaluators in the background"),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -356,8 +358,24 @@ async def run_evaluators(
             detail=f"Unknown evaluators: {invalid}. Available: {list(EVALUATOR_REGISTRY.keys())}"
         )
 
+    if background:
+        # Long judge runs exceed proxy request timeouts; poll the run for evaluator_results
+        exists = await db.execute(select(EvaluationRun.id).where(EvaluationRun.id == run_id))
+        if exists.scalar_one_or_none() is None:
+            raise HTTPException(status_code=404, detail=f"Evaluation run not found: {run_id}")
+        background_tasks.add_task(run_evaluators_background, run_id, evaluators)
+        return {"run_id": str(run_id), "status": "started", "evaluators": evaluators}
+
     try:
         summary = await run_evaluators_on_run(db, run_id, evaluators)
         return summary
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+async def run_evaluators_background(run_id: UUID, evaluator_names: list[str]):
+    """Background task to run evaluators on an existing run."""
+    from app.database import AsyncSessionLocal
+
+    async with AsyncSessionLocal() as db:
+        await run_evaluators_on_run(db, run_id, evaluator_names)
