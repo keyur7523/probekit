@@ -49,6 +49,8 @@ export interface EvaluationOutput {
   id: string
   test_case_id: string
   test_case_title?: string | null
+  test_case_input?: string | null
+  test_case_context?: string | null
   model: string
   model_response: string | null
   latency_ms: number | null

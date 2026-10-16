@@ -446,3 +446,22 @@ class TestDemoRunExclusion:
         real, _ = await self._seed(test_session)
         data = (await client.get(f"/api/evaluations/runs/{real.id}")).json()
         assert data["comparison"] is None
+
+
+async def test_run_detail_outputs_include_question_and_document(client: AsyncClient, test_session):
+    """The annotation page needs the question and source document to label faithfulness."""
+    from app.models import EvaluationOutput, EvaluationRun, RunStatus, TestCase
+
+    test_case = TestCase(title="HS-01a", prompt="p", input="Question: Q?", context="The document.")
+    test_session.add(test_case)
+    await test_session.flush()
+    run = EvaluationRun(prompt_version="study", models=[{"model_id": "m"}], status=RunStatus.COMPLETED)
+    test_session.add(run)
+    await test_session.flush()
+    test_session.add(EvaluationOutput(run_id=run.id, test_case_id=test_case.id, model="m", model_response="r"))
+    await test_session.commit()
+
+    [output] = (await client.get(f"/api/evaluations/runs/{run.id}")).json()["outputs"]
+    assert output["test_case_title"] == "HS-01a"
+    assert output["test_case_input"] == "Question: Q?"
+    assert output["test_case_context"] == "The document."

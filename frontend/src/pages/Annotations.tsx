@@ -32,7 +32,9 @@ function OutputNavigator({
           Output {currentIndex + 1} of {totalCount}
         </p>
         <p className="text-sm font-medium text-gray-900">{output.model}</p>
-        <p className="text-xs text-gray-500">Test Case: {output.test_case_id.slice(0, 8)}...</p>
+        <p className="text-xs text-gray-500">
+          Test Case: {output.test_case_title || `${output.test_case_id.slice(0, 8)}...`}
+        </p>
       </div>
       <div className="flex items-center gap-2">
         <button
@@ -67,11 +69,11 @@ function AnnotationForm({
   const [notes, setNotes] = useState('')
 
   const createAnnotationMutation = useMutation({
-    mutationFn: () =>
+    mutationFn: (override?: { annotationType: string; label: string }) =>
       annotationsApi.create({
         output_id: output.id,
-        annotation_type: annotationType,
-        label,
+        annotation_type: override?.annotationType ?? annotationType,
+        label: override?.label ?? label,
         notes: notes || undefined,
       }),
     onSuccess: () => {
@@ -85,6 +87,35 @@ function AnnotationForm({
 
   return (
     <div className="border border-gray-200 rounded-lg p-4">
+      {output.test_case_context && (
+        <div className="mb-4 pb-4 border-b border-gray-200">
+          <p className="text-xs font-medium text-gray-500 mb-2">
+            Hallucination label: is every claim in the output supported by the source document?
+          </p>
+          <div className="flex flex-col md:flex-row gap-2">
+            <input
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              disabled={!canAnnotate}
+              className="flex-1 rounded border-gray-300 text-xs p-2 border"
+              placeholder="One-line reason (e.g. invents the CEO's name)"
+            />
+            {(['faithful', 'hallucinated'] as const).map((value) => (
+              <button
+                key={value}
+                onClick={() => createAnnotationMutation.mutate({ annotationType: 'hallucination', label: value })}
+                disabled={!canAnnotate || createAnnotationMutation.isPending}
+                className={`px-3 py-2 text-xs font-medium text-white rounded disabled:opacity-50 ${
+                  value === 'faithful' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+                }`}
+              >
+                {value === 'faithful' ? 'Faithful' : 'Hallucinated'}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <p className="text-xs font-medium text-gray-500 mb-3">Add Annotation</p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
         <select
@@ -115,7 +146,7 @@ function AnnotationForm({
         />
       </div>
       <button
-        onClick={() => createAnnotationMutation.mutate()}
+        onClick={() => createAnnotationMutation.mutate(undefined)}
         disabled={!canAnnotate || !label || createAnnotationMutation.isPending}
         className="px-3 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded disabled:opacity-50"
       >
@@ -227,6 +258,25 @@ export default function Annotations() {
             onPrev={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
             onNext={() => setCurrentIndex((prev) => Math.min(outputs.length - 1, prev + 1))}
           />
+
+          {(currentOutput.test_case_input || currentOutput.test_case_context) && (
+            <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-3">
+              {currentOutput.test_case_context && (
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-2">Source Document</p>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap bg-amber-50 p-3 rounded">
+                    {currentOutput.test_case_context}
+                  </p>
+                </div>
+              )}
+              {currentOutput.test_case_input && (
+                <div>
+                  <p className="text-xs font-medium text-gray-500 mb-1">Question</p>
+                  <p className="text-sm text-gray-900">{currentOutput.test_case_input}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <p className="text-xs font-medium text-gray-500 mb-2">Model Output</p>

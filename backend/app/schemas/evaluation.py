@@ -61,6 +61,8 @@ class EvaluationOutputResponse(BaseModel):
     id: UUID
     test_case_id: UUID
     test_case_title: str | None = None
+    test_case_input: str | None = None
+    test_case_context: str | None = None
     model: str
     model_response: str | None
     latency_ms: int | None

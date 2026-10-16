@@ -90,6 +90,14 @@ class EvaluationOutput(Base):
     def test_case_title(self):
         return self.test_case.title if self.test_case else None
 
+    @property
+    def test_case_input(self):
+        return self.test_case.input if self.test_case else None
+
+    @property
+    def test_case_context(self):
+        return self.test_case.context if self.test_case else None
+
 
 class EvaluatorResult(Base):
     """Stores results from behavioral evaluators."""
