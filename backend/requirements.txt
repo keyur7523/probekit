@@ -16,7 +16,7 @@ greenlet>=3.0.0
 httpx>=0.26.0
 
 # LLM SDKs
-anthropic>=0.18.0
+anthropic>=1.0,<2
 openai>=1.10.0
 
 # Utilities
