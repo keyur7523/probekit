@@ -218,6 +218,22 @@ A check that doesn't apply to a test case (no source context for the hallucinati
 
 Because the hallucination check is an LLM judge, it should be validated against human labels (via the annotation workflow) before its verdicts are trusted.
 
+### Validating the hallucination judge
+
+I checked the LLM-judged hallucination evaluator against blind human labels on 80 outputs from
+`gpt-4o-mini`. The outputs answer questions about 40 fictional documents, half of them
+unanswerable, under strict and open prompts. Full design and per-item data:
+[docs/hallucination-study.md](docs/hallucination-study.md).
+
+| n | Raw agreement (95% CI) | Cohen's κ | Hallucinations caught |
+|---|---|---|---|
+| 80 (19 hallucinated) | 73.8% (63.2–82.1%) | 0.23 | 7 of 19 |
+
+The judge is weak as built, and the study shows why: it is never shown the question, so it
+can't verify correct "the document doesn't say" answers. It also skips inferred conclusions and
+hedged claims, which is where `gpt-4o-mini` actually hallucinates. (Claude Haiku 4.5, tried
+first, declined to invent details on all 40 unanswerable questions.)
+
 ### Adding a Custom Evaluator
 
 ```python

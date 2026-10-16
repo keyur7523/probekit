@@ -1,0 +1,926 @@
+{
+  "run_id": "13373278-05fe-4dfa-9d92-5b262b69b711",
+  "model_under_test": "gpt-4o-mini",
+  "judge": "claude-sonnet-5-5 (effort low), evaluator as of commit e7a3cc2",
+  "items": [
+    {
+      "id": "HS-01a",
+      "output_id": "d012d338-2d5f-40fd-b8f4-c5deeb299494",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-01b",
+      "output_id": "8c835dfc-b56f-4fbd-810c-bdbb2794af2d",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "inferred company motives/efforts",
+      "judge": "faithful",
+      "judge_score": 0.917,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-02a",
+      "output_id": "5f44237d-5c8c-4a8c-9479-63622ca3f5c3",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "invented commentary about efficient use",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-02b",
+      "output_id": "7b47e17d-4502-4f36-a117-d47c9b05ed40",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "hallucinated",
+      "judge_score": 0.0,
+      "judge_flagged": [
+        "1. NOT SUPPORTED - The claim \"The document does not contain the answer\" can't be checked against the context. No question is given, so there is no \"answer\" to look for. The context is a set of Lumora K3 drill specifications (motor, gearbox speeds, torque, battery, weight, charge time, warranty), and none of it says anything about what the document does or doesn't contain. Because the claim is a statement about a document's contents and not a fact the context establishes, the context does not support it. Without a specific question, I also can't say it is false. The most that can be said is that the context neither confirms nor contradicts it."
+      ]
+    },
+    {
+      "id": "HS-03a",
+      "output_id": "663c5b73-cbe8-4378-8e4d-fa1901a787e9",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-03b",
+      "output_id": "0163b37d-78c9-4c4a-88e0-e4fcfff02a5d",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "inferred survey results",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-04a",
+      "output_id": "1b38eee5-1bf9-4754-be28-128ff6d1244e",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "subjective conclusion about notable improvement",
+      "judge": "faithful",
+      "judge_score": 0.929,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-04b",
+      "output_id": "100890a7-bf6d-487d-84a3-88f371437e2f",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "hallucinated",
+      "judge_score": 0.0,
+      "judge_flagged": [
+        "1. NOT SUPPORTED - The claim is a meta-statement about the document, not a factual claim the context can back up. The context holds a trial summary covering sample size, sleep onset time, total sleep time, side effects, and number of clinics. It makes no statement about whether it answers any question, and no question has been posed. The claim is therefore not supported by the context."
+      ]
+    },
+    {
+      "id": "HS-05a",
+      "output_id": "965abf1e-4f9c-450c-beb9-38b7b9c1844c",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-05b",
+      "output_id": "b4287040-930b-434c-9786-703ff6133fa0",
+      "question_type": "partial",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-06a",
+      "output_id": "9510e5e9-5b2f-4868-8751-11366828641e",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "inferred incorrect motive for returning",
+      "judge": "hallucinated",
+      "judge_score": 0.5,
+      "judge_flagged": [
+        "3. PARTIALLY SUPPORTED - The trees producing translucent fruit is stated. But the claim says this happened \"after the transformation,\" when the fruit is the transformation itself, so the sequence is not supported.",
+        "4. NOT SUPPORTED - She returns after her mother's death, not because of the orchard's change. The trees \"have begun\" producing translucent fruit by the time she is there, but the synopsis does not say the change prompted her return."
+      ]
+    },
+    {
+      "id": "HS-06b",
+      "output_id": "39f7acf3-b673-4ecc-a34b-e5fadedff32e",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-07a",
+      "output_id": "49cccaea-5f3c-472d-9357-0e2c4af64203",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-07b",
+      "output_id": "ad8b9e96-309c-4c70-86e6-e36a0218a7c9",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "inferred investor confidence",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-08a",
+      "output_id": "70691c55-0a90-4294-9244-267424304aba",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-08b",
+      "output_id": "7034982d-1352-4fbd-956d-3db31ab4bd5c",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "hallucinated",
+      "judge_score": 0.0,
+      "judge_flagged": [
+        "1. NOT SUPPORTED - The claim says \"The document does not contain the answer,\" but no question is given, so there is nothing to check this against. The context is a short passage about the Okafor Maritime Museum's \"Salt and Signal\" gallery. It covers the opening date (12 June), the 140 objects, the restored 1890s lighthouse lens, the Tamsin Grey logbooks, admission being included in general admission, and the £2.1 million grant. The claim is about the absence of an answer, not about anything the context states, so the context does not support it. Whether it is accurate depends on a question that was not provided."
+      ]
+    },
+    {
+      "id": "HS-09a",
+      "output_id": "9fba5a5b-dca1-4293-b079-dc9f9eac64b3",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-09b",
+      "output_id": "37155f82-27c8-4c1d-836f-fa1eb2dde9c7",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "inferred conclusions about property taxes",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-10a",
+      "output_id": "4c3ed3c7-3fa1-4e33-80bf-6c1c3dcdf820",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "invented reason for adding water",
+      "judge": "hallucinated",
+      "judge_score": 0.6,
+      "judge_flagged": [
+        "4. NOT SUPPORTED - The context mentions the tray of water but never says it creates steam. That is common knowledge, but the source does not state it.",
+        "5. NOT SUPPORTED - The context gives no reason for the tray of water and says nothing about the crust."
+      ]
+    },
+    {
+      "id": "HS-10b",
+      "output_id": "20f376e0-e304-4354-b351-2fa559975c2d",
+      "question_type": "partial",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-11a",
+      "output_id": "c40802ea-dd46-41fd-80d1-58d2747c58db",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-11b",
+      "output_id": "558b3b8a-a284-442f-9fbd-18ebf942fac7",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "inferred economic repercussions",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-12a",
+      "output_id": "4e46d4e2-5ff8-4877-9e42-c316650b523a",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "unsure - inferred it was a successful season",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-12b",
+      "output_id": "9e320e82-bc19-4044-b067-0ce42f463632",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "hallucinated",
+      "judge_score": 0.0,
+      "judge_flagged": [
+        "1. NOT SUPPORTED - The claim is about an unspecified \"document\" and an unspecified \"answer.\" The context is a short passage about the Riverton Kestrels' season, and it says nothing about any document lacking an answer. No question is given, so the claim cannot be checked against the context. It is not a statement the context can confirm, so it counts as not supported (more precisely, unverifiable)."
+      ]
+    },
+    {
+      "id": "HS-13a",
+      "output_id": "b9c01bba-658b-47f4-ae59-868a774ac98a",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-13b",
+      "output_id": "6f5e2058-f43a-4b8d-bfd6-cbedfbb6c78a",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "inferred iOS support",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-14a",
+      "output_id": "63272079-2c6b-4fc7-8344-92656b0ae9f9",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 0.938,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-14b",
+      "output_id": "6713cff0-779a-45f8-bea7-6d789339f8ce",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-15a",
+      "output_id": "fcc4ea27-2682-431b-934e-c504acb8fbd2",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-15b",
+      "output_id": "a3f912e8-ffd7-481a-9ab2-d370680e23f9",
+      "question_type": "partial",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-16a",
+      "output_id": "ba14d88b-b3d4-426f-9353-9c58a206a373",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-16b",
+      "output_id": "30c85af6-0959-4024-8e31-bec487dd1ff8",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "hallucinated",
+      "judge_score": 0.0,
+      "judge_flagged": [
+        "1. NOT SUPPORTED - The claim says \"the document does not contain the answer,\" but no question is given, so there is nothing to check the claim against. The context is a day-3 itinerary for the Duvessa Island tour. It covers breakfast, a 9 a.m. boat to the sea caves at Port Ilse, lunch in Merrin, a 6 km clifftop hike to the lighthouse with 300 m of climbing, and dinner at the hotel. Because the claim is a statement about a document and not a fact the context states or contradicts, the context cannot support it. It is not mentioned in the context, so it cannot be called supported."
+      ]
+    },
+    {
+      "id": "HS-17a",
+      "output_id": "7699cf62-bb6f-4687-95fb-aae08cf2f88c",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-17b",
+      "output_id": "24ee74f2-7234-4dbe-b4df-9a2bd3114ad9",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-18a",
+      "output_id": "f7bc47b6-40cc-42a6-92d6-820e8c846a14",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-18b",
+      "output_id": "5650d714-5744-49af-b556-d90b9fca3f95",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-19a",
+      "output_id": "4127f9cb-10b4-4c72-b2af-5ad43325b838",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-19b",
+      "output_id": "f09162a3-b38b-44ec-a587-0e426284464f",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "infers original claim details",
+      "judge": "faithful",
+      "judge_score": 0.875,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-20a",
+      "output_id": "53b9958d-42e9-4f84-b4c4-cca13b633d40",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-20b",
+      "output_id": "b168630c-19ff-4756-82e8-af34aa5a25b8",
+      "question_type": "partial",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-21a",
+      "output_id": "b8a9020e-21f0-4a3f-8235-1bed037cb727",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-21b",
+      "output_id": "92f21a99-9fbb-40fc-8730-b0abf2b15404",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 0.917,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-22a",
+      "output_id": "6e266ffd-ddb0-4d9a-b605-ec7e3fd87cb0",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 0.714,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-22b",
+      "output_id": "6cf0a687-dc64-4ab3-89e5-85b9db943bd7",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-23a",
+      "output_id": "7fea1a4e-3fda-4ac5-bccd-37604669c4f5",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-23b",
+      "output_id": "a360c1ff-5e93-4bb1-8e47-69eea157810a",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "invented price facts",
+      "judge": "hallucinated",
+      "judge_score": 0.75,
+      "judge_flagged": [
+        "4. NOT SUPPORTED - The context gives no information about organic coffee prices, so the $2 to $4 per kilo range has no basis in it."
+      ]
+    },
+    {
+      "id": "HS-24a",
+      "output_id": "68acb45b-785e-4bbc-8459-20922a1d7f97",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-24b",
+      "output_id": "180c76cf-9b21-4ffd-853f-a9be3ca0b03b",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-25a",
+      "output_id": "fe1578e1-864b-4d97-a99b-3c67d15b1a84",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-25b",
+      "output_id": "19ce4706-7741-4950-9431-810ec3f095fc",
+      "question_type": "partial",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-26a",
+      "output_id": "54e2d66a-588b-4fb0-a232-4ad42dfa1905",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 0.938,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-26b",
+      "output_id": "697643f5-def9-41ce-8649-9125c6454765",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "hallucinated",
+      "judge_score": 0.0,
+      "judge_flagged": [
+        "1. NOT SUPPORTED - The claim says \"the document does not contain the answer,\" but no question is given, so there is nothing to check the claim against. The context is about the Calder Street bridge: construction starts in January and takes about two years, the bridge is a steel arch with two traffic lanes, a separated cycle path and wider footpaths, the budget is £31 million, and traffic will be diverted via Mill Road during construction. The context says nothing about whether any particular answer is or isn't present. Because the claim is a meta-statement about the document and cannot be confirmed from the context, it is not supported."
+      ]
+    },
+    {
+      "id": "HS-27a",
+      "output_id": "14613011-5faf-4357-b97e-05ba7bb9dae5",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-27b",
+      "output_id": "f44ded15-5e45-4f19-8ac4-b352ed11b402",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 0.9,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-28a",
+      "output_id": "5bc393c1-cf6f-4da8-8bab-ec47baa37781",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "invented historical context",
+      "judge": "hallucinated",
+      "judge_score": 0.4,
+      "judge_flagged": [
+        "3. NOT SUPPORTED - The context does not say the controller advanced textile manufacturing. It only says it was designed and patented.",
+        "4. NOT SUPPORTED - The context does not say the controller showcased her skills. Her being an engineer who designed it might suggest this, but the context does not state it.",
+        "5. NOT SUPPORTED - The context says nothing about women's representation in technical fields in 1908. This is outside general knowledge and is not in the text."
+      ]
+    },
+    {
+      "id": "HS-28b",
+      "output_id": "ceb30be3-9ba6-4c87-b8ec-b9d48400ddf2",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-29a",
+      "output_id": "406672ad-2082-4fe9-a2f6-c4e74cb21507",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-29b",
+      "output_id": "b4c2db60-6a6c-48e7-898a-3347a24a86a5",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-30a",
+      "output_id": "aec58080-93bf-4687-b2a0-14562e1f9446",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-30b",
+      "output_id": "37c15d2d-f4fb-485f-ad09-a2e19105fa64",
+      "question_type": "partial",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-31a",
+      "output_id": "5df256a8-a30f-48bf-a796-de5b27027493",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-31b",
+      "output_id": "465fa312-b68a-4ccc-a01b-4bfd13598ac0",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "invented detail about an indie studio",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-32a",
+      "output_id": "c02f45ee-a910-46ce-b38e-0554d6b3be3d",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 0.75,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-32b",
+      "output_id": "9611d472-c8db-4ebd-bce9-24f353466975",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "hallucinated",
+      "judge_score": 0.0,
+      "judge_flagged": [
+        "1. NOT SUPPORTED - The claim \"The document does not contain the answer\" can't be matched to the context. No question is given, so there is nothing to say the document lacks. The context is a short, complete article about a red panda cub born at Pellbrook Zoo. It covers the birth date (17 June), the parents (Mika and Rowan), the cub's health, the nest box period, and the naming vote in September. The claim is a general statement about the document, and the context doesn't support it. Without a question, it can't be judged true either. Since it isn't backed by the context, it is marked NOT SUPPORTED."
+      ]
+    },
+    {
+      "id": "HS-33a",
+      "output_id": "d087ab8e-1a4f-4b61-b564-08ddfbedd938",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-33b",
+      "output_id": "9dd1920c-7f5e-4096-8778-3c21cc518c28",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "inferred conclusion about significant number",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-34a",
+      "output_id": "bad9ac26-13ab-4255-b928-a6fa84f9f91a",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-34b",
+      "output_id": "107c6207-e027-425a-aa00-ecb79e670de7",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-35a",
+      "output_id": "89ad68af-4ff8-4a41-a9e9-48765fe3eeef",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-35b",
+      "output_id": "33ff0dc0-202a-45fc-b360-9fdd4b3d5c20",
+      "question_type": "partial",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-36a",
+      "output_id": "e14ebea7-c8b8-4cc1-b3b7-89941a7051f0",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "invented background for the closure",
+      "judge": "hallucinated",
+      "judge_score": 0.667,
+      "judge_flagged": [
+        "5. NOT SUPPORTED - The report says the closure is for inspection but does not say it is needed to ensure safety. That reason is an inference.",
+        "6. NOT SUPPORTED - The report does not say the closure is for assessing damage or for any step before resuming operations. It only says \"inspection.\""
+      ]
+    },
+    {
+      "id": "HS-36b",
+      "output_id": "97731648-2f75-414e-ab12-279cedcfae8a",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "hallucinated",
+      "judge_score": 0.0,
+      "judge_flagged": [
+        "1. NOT SUPPORTED - The claim asserts that \"the document does not contain the answer,\" but no question was given, so there is nothing to check the document against. The context is an incident report on the Kelso Plastics plant fire. It covers the date, cause, evacuation time, injury and line closure. The claim says nothing about those facts, and the context never says anything about what the document does or doesn't contain. Nothing in the context supports the claim, so I mark it NOT SUPPORTED. A different verdict could apply if a specific question were supplied and the report really lacked its answer."
+      ]
+    },
+    {
+      "id": "HS-37a",
+      "output_id": "13aa1221-1bf9-45a4-8915-373ace246313",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-37b",
+      "output_id": "3773227c-2511-40e3-9f77-613f44728967",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-38a",
+      "output_id": "48a6bfb5-40a1-4e10-a596-e2d2ef451bf1",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-38b",
+      "output_id": "694999b8-ebba-4df1-9beb-a5347fdbf20a",
+      "question_type": "unanswerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-39a",
+      "output_id": "5de58d4f-5d78-4f2f-bbb1-f61988b68c29",
+      "question_type": "answerable",
+      "prompt_style": "strict",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "faithful",
+      "judge_score": 1.0,
+      "judge_flagged": []
+    },
+    {
+      "id": "HS-39b",
+      "output_id": "62b16d95-0d5a-410d-a4ff-0fcac9260b78",
+      "question_type": "unanswerable",
+      "prompt_style": "open",
+      "human": "faithful",
+      "human_reason": "",
+      "judge": "hallucinated",
+      "judge_score": 0.333,
+      "judge_flagged": [
+        "2. NOT SUPPORTED - The context says nothing about who creates board games in general. This is general knowledge that the context does not mention.",
+        "3. NOT SUPPORTED - The context does not say where designer information can be found, whether on packaging, on a website, or anywhere else. The claim is outside the provided text."
+      ]
+    },
+    {
+      "id": "HS-40a",
+      "output_id": "d4f721f0-3a23-4cbf-86a4-cb99dd64f0ee",
+      "question_type": "answerable",
+      "prompt_style": "open",
+      "human": "hallucinated",
+      "human_reason": "invented motive for choosing aircraft",
+      "judge": "hallucinated",
+      "judge_score": 0.667,
+      "judge_flagged": [
+        "4. NOT SUPPORTED - The context gives no reason for choosing the A220, and efficiency is never mentioned.",
+        "5. NOT SUPPORTED - The context gives no reason for choosing the A220, and comfort is never mentioned."
+      ]
+    },
+    {
+      "id": "HS-40b",
+      "output_id": "f85b6de1-179d-4eb2-8a07-b4dba194f7fd",
+      "question_type": "partial",
+      "prompt_style": "strict",
+      "human": "hallucinated",
+      "human_reason": "wrong half of a two-part answer",
+      "judge": "hallucinated",
+      "judge_score": 0.0,
+      "judge_flagged": [
+        "1. NOT SUPPORTED - The claim is a meta-statement about the document, not a factual assertion the context can back up. No question is posed, so there is no \"answer\" the document lacks. The context does contain concrete information: the route, launch date, aircraft, fares, flight time, and passenger forecast. The claim therefore doesn't match the context."
+      ]
+    }
+  ]
+}

@@ -79,3 +79,48 @@ README table: n, raw agreement with 95% Wilson interval, Cohen's kappa, the conf
 and the failure patterns. Resume wording only with the measured numbers, e.g.
 "Measured the LLM-judged hallucination check against 80 blind human labels: X% agreement,
 κ = Y."
+
+## Results — v1 judge (16 October 2026)
+
+Run `13373278` (`gpt-4o-mini`, 80 outputs), 80 blind human labels (19 hallucinated, 61
+faithful), judge `claude-sonnet-5-5` at low effort as of commit `e7a3cc2`. Per-item data:
+`study/labels` in `study/hallucination_labels.json`, verdicts in `study/results_v1.json`.
+
+| | Judge: faithful | Judge: hallucinated |
+|---|---|---|
+| **Human: faithful** (61) | 52 | 9 |
+| **Human: hallucinated** (19) | 12 | 7 |
+
+- n = 80, raw agreement **73.8%** (95% Wilson CI 63.2–82.1%), Cohen's **κ = 0.23**.
+- The judge caught 7 of 19 human-labelled hallucinations (37%), and one of those catches was
+  for the wrong reason (HS-40b, below). It flagged 9 of 61 faithful outputs.
+- Raw agreement looks acceptable only because most outputs are faithful. κ shows agreement is
+  barely above chance, which is the case P3 of the audit warned about.
+
+### Failure patterns
+
+1. **The judge never sees the question.** The extraction step gets only the response, and the
+   verification step gets the document and the extracted claims. A correct abstention ("The
+   document does not contain the answer.") therefore can't be checked, and the judge marked it
+   NOT SUPPORTED in 9 of 17 cases. That accounts for 8 of the 9 false alarms, and it is
+   inconsistent: the other 8 identical abstentions passed. The one "catch" among them, HS-40b, is
+   accidental. The human flagged it because the aircraft *is* in the document, but the judge's
+   stated reason was the same "can't check a meta-statement" reasoning.
+2. **Inferred conclusions and evaluative claims are skipped.** The extraction prompt asks for
+   "explicit claims, not opinions or hedged statements". So 11 of the 12 missed hallucinations
+   were never checked: unsupported conclusions ("indicates significant investor confidence",
+   "a successful season", "a notable improvement"), invented motives ("part of the company's
+   efforts to enhance sustainability"), and hedged statements that still assert specific content
+   ("likely created by an indie studio", "likely a majority of the survey respondents
+   supported"). Under the labeling rules these are hallucinations. The judge catches them only
+   when they're phrased as plain facts (HS-10a, HS-28a, HS-36a, HS-40a).
+3. **Close inferences are accepted.** HS-19b ("Halden originally claimed damages for lost rental
+   income") reads the claim back from the award. The judge marked it supported, and the human did
+   not.
+4. **Generic advice is flagged.** HS-39b ("this information can typically be found on the
+   packaging or official website") is faithful under the labeling rules, but the judge flagged it
+   as unsupported general knowledge.
+
+Patterns 1 and 2 are design flaws in the evaluator, not judgment noise. Fixing them and
+re-scoring these same 80 outputs would give an optimistic estimate, because the fixes were
+chosen after seeing these disagreements. An unbiased number needs fresh labels.
