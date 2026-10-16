@@ -1,9 +1,10 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey, JSON
+from sqlalchemy import Column, String, Text, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.database import Base
+from app.models.types import UTCDateTime
 
 
 class HumanAnnotation(Base):
@@ -16,7 +17,7 @@ class HumanAnnotation(Base):
     label = Column(String(100), nullable=False)  # e.g., "correct", "incorrect", "hallucinated"
     notes = Column(Text, nullable=True)
     extra_data = Column(JSON, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(UTCDateTime, default=datetime.utcnow)
     created_by = Column(String(100), nullable=True)  # Optional user identifier
 
     output = relationship("EvaluationOutput", back_populates="annotations")

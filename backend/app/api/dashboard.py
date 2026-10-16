@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -296,15 +296,16 @@ async def get_annotation_accuracy(
 
     # One item per (output, evaluator): the latest evaluator verdict (evaluators can be
     # re-run) paired with the latest human label for that output.
+    earliest = datetime.min.replace(tzinfo=timezone.utc)  # created_at values are UTC-aware
     latest_annotation: dict[tuple, HumanAnnotation] = {}
     latest_result: dict[tuple, EvaluatorResult] = {}
     for annotation, auto_result in result.all():
         key = (annotation.output_id, auto_result.evaluator_name)
         current = latest_annotation.get(key)
-        if current is None or (annotation.created_at or datetime.min) > (current.created_at or datetime.min):
+        if current is None or (annotation.created_at or earliest) > (current.created_at or earliest):
             latest_annotation[key] = annotation
         current = latest_result.get(key)
-        if current is None or (auto_result.created_at or datetime.min) > (current.created_at or datetime.min):
+        if current is None or (auto_result.created_at or earliest) > (current.created_at or earliest):
             latest_result[key] = auto_result
 
     matrices: dict[str, ConfusionMatrix] = {}
