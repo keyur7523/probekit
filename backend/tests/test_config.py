@@ -18,6 +18,10 @@ from app.config import Settings
         'postgresql+asyncpg://u:p@ep-x-123.us-east-2.aws.neon.tech/neondb?ssl=require',
     ),
     ('postgresql+asyncpg://u:p@host/db?sslmode=require', 'postgresql+asyncpg://u:p@host/db?ssl=require'),
+    # Common paste mistakes from Neon's connect dialog
+    ("psql 'postgresql://u:p@ep-x.neon.tech/neondb?sslmode=require'", 'postgresql+asyncpg://u:p@ep-x.neon.tech/neondb?ssl=require'),
+    ("'postgresql://u:p@host/db'", 'postgresql+asyncpg://u:p@host/db'),
+    ('  postgresql://u:p@host/db\n', 'postgresql+asyncpg://u:p@host/db'),
 ])
 def test_database_url_uses_asyncpg(url, expected):
     assert Settings(database_url=url, _env_file=None).database_url == expected

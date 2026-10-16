@@ -42,7 +42,12 @@ class Settings(BaseSettings):
 
         Switches postgres:// and postgresql:// to postgresql+asyncpg://, renames sslmode to
         asyncpg's ssl, and drops channel_binding, which asyncpg.connect() does not accept.
+        Also tolerates a pasted psql command (psql 'postgresql://...'), quotes and whitespace.
         """
+        url = url.strip()
+        if url.startswith("psql "):
+            url = url[len("psql "):].strip()
+        url = url.strip("'\"")
         for prefix in ("postgres://", "postgresql://"):
             if url.startswith(prefix):
                 url = "postgresql+asyncpg://" + url[len(prefix):]
