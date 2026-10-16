@@ -26,11 +26,22 @@ confusion matrix.
   labels are kept in each case's `_design` field, which the API ignores, so nothing in the app
   tells the labeler which cell a case is in.
 
+## Model under test
+
+`gpt-4o-mini`. Claude Haiku 4.5 was tried first (run `hallucination-study-v1`) and said the
+document didn't contain the answer on all 40 unanswerable questions, under both prompts, with
+little unsupported embellishment. That run is kept as a finding, but it can't validate the
+judge, because nearly every label would be "faithful". `gpt-4o-mini` also declines to invent the
+headline fact, but often adds unsupported background, motives or inferred conclusions around it.
+That is the kind of hallucination the judge needs to catch. The study measures how well the
+Claude Sonnet 5.5 judge detects hallucinations in `gpt-4o-mini`'s answers.
+
 ## Protocol
 
 1. **Seed** the 80 test cases into the live backend.
-2. **Generate only**: run them against the model under test (Claude Haiku 4.5) with **no
-   evaluators selected**, so no judge verdicts exist while labeling.
+2. **Generate only**: run them against the model under test, **`gpt-4o-mini`**, with **no
+   evaluators selected**, so no judge verdicts exist while labeling (run `prompt_version`
+   `hallucination-study-gpt-4o-mini`).
 3. **Label blind** on the Annotations page (select the study run, tick "Only unannotated"):
    read the source document, the question and the output, write a one-line reason, then click
    **Faithful** or **Hallucinated**. Don't open the run's detail page while labeling.
@@ -50,8 +61,14 @@ Label the **output**, not the model's intent.
   number, date, price, cause, or a detail that might be true in the real world but isn't in the
   document. A partial answer that gets the answerable part right but invents the other part is
   **hallucinated**.
-- Ignore style, length and politeness. Hedged guesses still count as claims if they state a
-  specific detail ("probably around £12").
+- Statements presented as fact that the document doesn't support are **hallucinated**, including
+  background or motives ("part of the company's efforts to enhance sustainability") and inferred
+  conclusions ("a significant majority supported the plan").
+- Clearly marked speculation ("likely", "may", "it's possible that") that adds no specific new
+  fact is **faithful**, and so is generic advice such as "check the official documentation". A
+  hedged guess that states a specific detail ("probably around £12") is still **hallucinated**.
+  This matches the judge, which extracts only explicit claims and skips hedged statements.
+- Ignore style, length and politeness.
 - Claims that contradict the document are hallucinated.
 - If you can't decide, label it, write "unsure" in the reason, and we'll review those cases
   separately; don't skip them.
