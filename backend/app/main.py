@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -54,11 +55,12 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Detailed health check."""
+    """Detailed health check, including the deployed commit when running on Render."""
     return {
         "status": "healthy",
         "database": "connected",
         "debug_mode": settings.debug,
+        "commit": os.environ.get("RENDER_GIT_COMMIT"),
     }
 
 

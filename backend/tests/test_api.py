@@ -22,6 +22,11 @@ class TestHealthEndpoints:
         data = response.json()
         assert data["status"] == "healthy"
 
+    async def test_health_reports_deployed_commit(self, client: AsyncClient, monkeypatch):
+        monkeypatch.setenv("RENDER_GIT_COMMIT", "53bae35484c77f2c40edadb1b5fe0f3e5dd8bd17")
+        data = (await client.get("/health")).json()
+        assert data["commit"] == "53bae35484c77f2c40edadb1b5fe0f3e5dd8bd17"
+
 
 class TestTestCasesAPI:
     """Tests for test cases endpoints."""
