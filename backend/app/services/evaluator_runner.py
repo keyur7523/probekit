@@ -6,7 +6,7 @@ from sqlalchemy.orm import selectinload
 
 from app.models import EvaluationRun, EvaluationOutput, EvaluatorResult, TestCase
 from app.schemas.evaluation import ModelConfig
-from app.services.evaluation import get_client_for_model
+from app.services.evaluation import build_prompt, get_client_for_model
 from app.evaluators import (
     get_evaluator,
     EvaluationContext,
@@ -225,7 +225,7 @@ async def _run_stability_evaluator(
     temperatures = stability_params.get('temperatures', [0.0, 0.5, 1.0])
     samples_per_temp = stability_params.get('samples_per_temp', 2)
 
-    full_prompt = f"{test_case.prompt}\n\nInput: {test_case.input}"
+    full_prompt = build_prompt(test_case)
     outputs = [output.model_response]
 
     async def sample(temp: float) -> str:
