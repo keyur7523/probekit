@@ -19,6 +19,9 @@ out invented details, both outright (unanswerable questions) and as embellishmen
 (answerable ones). Design labels live under "_design",
 which the API ignores; titles are neutral IDs so the labeler isn't primed.
 
+Also builds the 30-case hold-out set (sample_data/hallucination_holdout.json) from 15 newer
+documents, used to check the fixed judge on items it wasn't designed against.
+
 Usage: python3 backend/scripts/build_hallucination_study.py
 """
 import json
@@ -351,10 +354,129 @@ DOCUMENTS = [
 ]
 
 
-def build() -> list[dict]:
-    assert len(DOCUMENTS) == 40
+# Hold-out set: 15 new documents, written after judge v2 was designed, labeled blind to check
+# v2 on items it was never tuned against. Same design: every 5th unanswerable question is partial.
+HOLDOUT_DOCUMENTS = [
+    (
+        "Fernhollow Cider Company 2025 season report: The orchard pressed 1,420 tonnes of apples, "
+        "its largest harvest yet. Sales of the flagship Dry Russet rose 22%, and the company "
+        "launched a 0.5% alcohol-free cider in June. Fernhollow now supplies 260 pubs, up from 190. "
+        "A new bottling line will be installed in the spring.",
+        "How many pubs does Fernhollow now supply?", "260 (up from 190)",
+        "What was Fernhollow's total revenue for the season?", False,
+    ),
+    (
+        "Calderon T2 smart thermostat: Works with gas boilers and heat pumps, and learns a "
+        "household's schedule over the first week. The display is 3.5 inches. It runs on mains "
+        "power with a two-day battery backup. Installation takes about an hour, and the price "
+        "includes a five-year warranty.",
+        "How long does the battery backup last?", "Two days",
+        "How much energy does the Calderon T2 save in a typical home?", False,
+    ),
+    (
+        "Westlow Town Council approved a new skate park at Hollin Fields on 12 June by 9 votes to "
+        "3. The park will cover 1,800 square metres and include a bowl, a street section and a "
+        "beginners' area. Building work is due to start in September. Neighbours raised concerns "
+        "about noise after 9 p.m.",
+        "How large will the skate park be?", "1,800 square metres",
+        "How much will the Westlow skate park cost to build?", False,
+    ),
+    (
+        "A survey of 2,300 commuters in Ardenvale found that 41% now travel by train at least "
+        "three days a week, up from 33% two years ago. Average door-to-door journey time was "
+        "52 minutes. Overcrowding was the most common complaint, named by 58% of rail commuters. "
+        "The survey was run by the regional transport board in March.",
+        "What was the most common complaint among rail commuters?", "Overcrowding (58%)",
+        "What share of Ardenvale commuters drive to work?", False,
+    ),
+    (
+        "Review: The Larkspur Inn sits above the harbour in Tolle and has nine guest rooms, all "
+        "with sea views. Rooms start at £120 a night including breakfast. The restaurant's crab "
+        "linguine was excellent, though the wine list is short. Parking is limited to six spaces, "
+        "so arriving by train is easier.",
+        "How many guest rooms does The Larkspur Inn have?", "Nine",
+        "Who owns The Larkspur Inn, and how much do rooms cost per night?", True,
+    ),
+    (
+        "Field Notes from Dunmere, a new weekly podcast from the Dunmere Natural History Society, "
+        "launched on 3 March. Each episode runs about 30 minutes and features a local naturalist. "
+        "The first season has twelve episodes. The podcast is free on all major platforms and is "
+        "funded by a community grant.",
+        "How many episodes are in the first season?", "Twelve",
+        "Who hosts Field Notes from Dunmere?", False,
+    ),
+    (
+        "Orrin Robotics ran a three-month pilot of its picking robots at the Gallow Street "
+        "warehouse. The 14 robots handled 38% of orders by the end of the pilot. Order errors fell "
+        "from 1.2% to 0.7%. The warehouse operator has agreed to extend the trial to a second site "
+        "in January.",
+        "How many robots were used in the pilot?", "14",
+        "How much did the warehouse operator pay for the Orrin Robotics pilot?", False,
+    ),
+    (
+        "Volunteers removed 640 kg of litter from Sallow Bay during the spring beach clean on "
+        "26 April. Plastic bottles and fishing line made up most of the haul. 118 volunteers took "
+        "part, including two local school groups. The next clean is planned for September.",
+        "How much litter was removed?", "640 kg",
+        "How many plastic bottles were collected at Sallow Bay?", False,
+    ),
+    (
+        "Ventnor College has launched the Harrow Scholarship for students from families with "
+        "incomes below £30,000. Each scholarship covers full tuition and a £4,000 yearly "
+        "living allowance. Twenty scholarships will be awarded each year, starting next autumn. "
+        "Applications close on 15 January.",
+        "When do applications close?", "15 January",
+        "Which donor funds the Harrow Scholarship?", False,
+    ),
+    (
+        "The Kitemark Cycling Club sportive on 8 June offers 60 km and 110 km routes through the "
+        "Cradden Hills. Entry costs £35 and includes timing, food stops and a medal. The longer "
+        "route climbs 1,900 metres. Riders must be at least 16, and helmets are compulsory.",
+        "How much does entry cost?", "£35",
+        "What was last year's winning time on the 110 km route, and how much does entry cost?", True,
+    ),
+    (
+        "The Tarn Valley Railway has finished restoring locomotive No. 47, a 1924 tank engine, "
+        "after six years of work by volunteers. The restoration cost £380,000, mostly raised "
+        "through donations. No. 47 will haul passenger trains on the 7-mile line from Easter.",
+        "How long did the restoration take?", "Six years",
+        "How many passengers does the Tarn Valley Railway carry each year?", False,
+    ),
+    (
+        "Review of the Halberd 14 laptop: The 14-inch screen is bright and sharp, and the aluminium "
+        "body weighs 1.3 kg. Battery life reached 11 hours in our video test. The keyboard is "
+        "comfortable, but the speakers are thin. It costs £1,049 with 16 GB of memory.",
+        "How long did the battery last in the video test?", "11 hours",
+        "Which processor does the Halberd 14 use?", False,
+    ),
+    (
+        "Corrie Bikes, the city's bike-share scheme, recorded 412,000 trips last year, up 15%. "
+        "The average trip lasted 18 minutes. The scheme added 40 docking stations, bringing the "
+        "total to 210. Electric bikes made up 30% of the fleet and 46% of trips.",
+        "How many docking stations are there now?", "210",
+        "How many bikes are in the Corrie Bikes fleet?", False,
+    ),
+    (
+        "The Weir House, a new play by Anouk Selby, runs at the Grange Theatre from 4 to 22 "
+        "November. It follows three sisters who inherit a mill on a flooding river. The cast of "
+        "five is led by Martha Quill. Tickets cost £18 to £32, with £10 tickets for under-25s.",
+        "Who leads the cast?", "Martha Quill",
+        "How long is the running time of The Weir House?", False,
+    ),
+    (
+        "The Elsmoor Lab has received a £1.2 million grant to develop drought-tolerant barley. "
+        "Over four years, the team will test 300 barley lines in field trials at two farms. "
+        "Early greenhouse results showed some lines kept 85% of normal yield under severe "
+        "drought. The project is led by Dr Hana Brück.",
+        "How many barley lines will be tested?", "300",
+        "Which organisation awarded the grant, and who leads the project?", True,
+    ),
+]
+
+
+def build(documents=DOCUMENTS, prefix: str = "HS", category: str = "hallucination_study") -> list[dict]:
     cases = []
-    for n, (document, answerable_q, answer, unanswerable_q, partial) in enumerate(DOCUMENTS, start=1):
+    for n, (document, answerable_q, answer, unanswerable_q, partial) in enumerate(documents, start=1):
         odd = n % 2 == 1
         questions = [
             ("a", answerable_q, "answerable", "strict" if odd else "open", answer),
@@ -362,8 +484,8 @@ def build() -> list[dict]:
         ]
         for suffix, question, kind, style, expected in questions:
             cases.append({
-                "title": f"HS-{n:02d}{suffix}",
-                "category": "hallucination_study",
+                "title": f"{prefix}-{n:02d}{suffix}",
+                "category": category,
                 "prompt": STRICT_PROMPT if style == "strict" else OPEN_PROMPT,
                 "input": f"Question: {question}",
                 "context": document,
@@ -378,7 +500,11 @@ def build() -> list[dict]:
 
 
 if __name__ == "__main__":
-    out = Path(__file__).resolve().parents[1] / "sample_data" / "hallucination_study.json"
-    cases = build()
-    out.write_text(json.dumps(cases, indent=2, ensure_ascii=False) + "\n")
-    print(f"Wrote {len(cases)} test cases to {out}")
+    sample_data = Path(__file__).resolve().parents[1] / "sample_data"
+    assert len(DOCUMENTS) == 40 and len(HOLDOUT_DOCUMENTS) == 15
+    for filename, cases in (
+        ("hallucination_study.json", build()),
+        ("hallucination_holdout.json", build(HOLDOUT_DOCUMENTS, "HO", "hallucination_holdout")),
+    ):
+        (sample_data / filename).write_text(json.dumps(cases, indent=2, ensure_ascii=False) + "\n")
+        print(f"Wrote {len(cases)} test cases to {sample_data / filename}")
