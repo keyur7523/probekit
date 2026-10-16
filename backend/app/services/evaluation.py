@@ -26,14 +26,22 @@ def get_client_for_model(model_config: ModelConfig) -> BaseLLMClient:
         return OpenAIClient(model_id=model_config.model_id)
 
 
+def build_prompt(test_case: TestCase) -> str:
+    """Prompt sent to the model under test: instructions, the source document (if any), then input."""
+    parts = [test_case.prompt]
+    if test_case.context:
+        parts.append(f"Document:\n{test_case.context}")
+    parts.append(f"Input: {test_case.input}")
+    return "\n\n".join(parts)
+
+
 async def run_single_evaluation(
     client: BaseLLMClient,
     test_case: TestCase,
     model_config: ModelConfig,
 ) -> dict:
     """Run evaluation for a single test case against a single model."""
-    # Combine prompt template with input
-    full_prompt = f"{test_case.prompt}\n\nInput: {test_case.input}"
+    full_prompt = build_prompt(test_case)
 
     try:
         response = await client.generate(
