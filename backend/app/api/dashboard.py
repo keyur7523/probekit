@@ -30,6 +30,8 @@ def _calculate_run_stats(run: EvaluationRun) -> dict:
             model_costs[output.model].append(output.cost_usd)
 
         for result in output.evaluator_results:
+            if result.passed is None:  # not applicable: excluded from pass rates
+                continue
             total_results += 1
             evaluator_counts[result.evaluator_name]['total'] += 1
             model_pass_counts[output.model]['total'] += 1
@@ -96,7 +98,10 @@ async def get_metrics(db: AsyncSession = Depends(get_db)):
     )).scalar() or 0
     total_cost = (await db.execute(select(func.sum(EvaluationRun.total_cost_usd)))).scalar() or 0.0
     avg_latency = (await db.execute(select(func.avg(EvaluationOutput.latency_ms)))).scalar() or 0.0
-    total_evaluator_results = (await db.execute(select(func.count(EvaluatorResult.id)))).scalar() or 0
+    # Not-applicable verdicts (passed is NULL) are excluded from the pass rate
+    total_evaluator_results = (await db.execute(
+        select(func.count(EvaluatorResult.id)).where(EvaluatorResult.passed.isnot(None))
+    )).scalar() or 0
     total_passed = (await db.execute(
         select(func.count(EvaluatorResult.id)).where(EvaluatorResult.passed.is_(True))
     )).scalar() or 0
@@ -152,6 +157,8 @@ async def get_trends(
         day_key = run.timestamp.date().isoformat()
         for output in run.outputs:
             for result in output.evaluator_results:
+                if result.passed is None:  # not applicable: excluded from pass rates
+                    continue
                 entry = stats_by_date[day_key][result.evaluator_name]
                 entry['total'] += 1
                 if result.passed:
@@ -192,6 +199,8 @@ async def get_model_comparison(db: AsyncSession = Depends(get_db)):
             if output.cost_usd is not None:
                 model_costs[output.model].append(output.cost_usd)
             for result in output.evaluator_results:
+                if result.passed is None:  # not applicable: excluded from pass rates
+                    continue
                 model_pass_counts[output.model]['total'] += 1
                 if result.passed:
                     model_pass_counts[output.model]['passed'] += 1
@@ -229,6 +238,8 @@ async def get_evaluator_breakdown(db: AsyncSession = Depends(get_db)):
     })
 
     for res in results:
+        if res.passed is None:  # not applicable: excluded from pass rates
+            continue
         entry = stats[res.evaluator_name]
         entry['total'] += 1
         if res.passed:
@@ -422,6 +433,8 @@ async def get_regressions(
             stats: dict[str, dict[str, float | int]] = {}
             for output in run.outputs:
                 for result in output.evaluator_results:
+                    if result.passed is None:  # not applicable: excluded from pass rates
+                        continue
                     entry = stats.setdefault(result.evaluator_name, {'passed': 0, 'total': 0})
                     entry['total'] += 1
                     if result.passed:
