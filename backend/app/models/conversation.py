@@ -1,11 +1,12 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, String, Text, DateTime, Integer, Float, Boolean, ForeignKey, JSON, Index, Enum
+from sqlalchemy import Column, String, Text, Integer, Float, Boolean, ForeignKey, JSON, Index, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from app.database import Base
+from app.models.types import UTCDateTime
 from app.models.evaluation import RunStatus
 
 
@@ -21,7 +22,7 @@ class ConversationRun(Base):
     condition = Column(String(50), nullable=False)
     model = Column(String(100), nullable=False)
     status = Column(Enum(RunStatus), default=RunStatus.PENDING)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(UTCDateTime, default=datetime.utcnow)
     intent_id = Column(String(100), nullable=True)
     system_prompt = Column(Text, nullable=True)
     parameters = Column(JSON, nullable=True)
@@ -66,7 +67,7 @@ class ConversationTurn(Base):
     latency_ms = Column(Integer, nullable=True)
     cost_usd = Column(Float, nullable=True)
     fallback_used = Column(Boolean, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(UTCDateTime, default=datetime.utcnow)
 
     run = relationship("ConversationRun", back_populates="turns")
     evaluator_results = relationship(
@@ -93,7 +94,7 @@ class TurnEvaluatorResult(Base):
     score = Column(Float, nullable=True)
     details = Column(JSON, nullable=True)
     reasoning = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(UTCDateTime, default=datetime.utcnow)
 
     turn = relationship("ConversationTurn", back_populates="evaluator_results")
 
@@ -115,7 +116,7 @@ class ConversationEvaluatorResult(Base):
     score = Column(Float, nullable=True)
     details = Column(JSON, nullable=True)
     reasoning = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(UTCDateTime, default=datetime.utcnow)
 
     run = relationship("ConversationRun", back_populates="evaluator_results")
 

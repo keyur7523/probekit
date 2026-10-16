@@ -1,12 +1,14 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Text, DateTime, JSON, Boolean
+from sqlalchemy import Column, String, Text, JSON, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from app.database import Base
+from app.models.types import UTCDateTime
 
 
 class TestCase(Base):
     __tablename__ = "test_cases"
+    __test__ = False  # stop pytest collecting this model as a test class
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String(200), nullable=True)
@@ -22,8 +24,8 @@ class TestCase(Base):
     stability_params = Column(JSON, nullable=True)  # temperatures[], samples_per_temp
     should_refuse = Column(Boolean, nullable=True)  # Expected refusal behavior for refusal evaluator
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(UTCDateTime, default=datetime.utcnow)
+    updated_at = Column(UTCDateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     def __repr__(self):
         return f"<TestCase(id={self.id}, category={self.category})>"

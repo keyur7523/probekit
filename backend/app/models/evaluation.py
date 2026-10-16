@@ -1,10 +1,11 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Text, DateTime, Integer, Float, Boolean, ForeignKey, Enum, JSON, Index
+from sqlalchemy import Column, String, Text, Integer, Float, Boolean, ForeignKey, Enum, JSON, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import enum
 from app.database import Base
+from app.models.types import UTCDateTime
 
 
 class RunStatus(str, enum.Enum):
@@ -26,7 +27,7 @@ class EvaluationRun(Base):
     prompt_version = Column(String(100), nullable=False)
     models = Column(JSON, nullable=False)  # List of models to evaluate
     status = Column(Enum(RunStatus), default=RunStatus.PENDING)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(UTCDateTime, default=datetime.utcnow)
     total_cost_usd = Column(Float, default=0.0)
     total_duration_ms = Column(Integer, default=0)
     test_case_count = Column(Integer, default=0)
@@ -75,7 +76,7 @@ class EvaluationOutput(Base):
     output_tokens = Column(Integer, nullable=True)
     cost_usd = Column(Float, nullable=True)
     error = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(UTCDateTime, default=datetime.utcnow)
 
     run = relationship("EvaluationRun", back_populates="outputs")
     evaluator_results = relationship("EvaluatorResult", back_populates="output", cascade="all, delete-orphan")
@@ -107,7 +108,7 @@ class EvaluatorResult(Base):
     score = Column(Float, nullable=True)  # 0.0 - 1.0
     details = Column(JSON, nullable=True)  # Evaluator-specific metadata
     reasoning = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(UTCDateTime, default=datetime.utcnow)
 
     output = relationship("EvaluationOutput", back_populates="evaluator_results")
 
