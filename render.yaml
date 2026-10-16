@@ -1,0 +1,29 @@
+# Render Blueprint: Dashboard -> New -> Blueprint -> select this repo.
+# The frontend (Vercel) calls https://probekit.onrender.com/api, so keep the service name.
+services:
+  - type: web
+    name: probekit
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    # Tables and column syncs are applied on startup (app.database.init_db)
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DATABASE_URL
+        fromDatabase:
+          name: probekit-db
+          property: connectionString
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+
+databases:
+  - name: probekit-db
+    plan: free
+    databaseName: probekit
+    user: probekit
