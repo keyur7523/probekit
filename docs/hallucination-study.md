@@ -18,7 +18,10 @@ confusion matrix.
     these are **partial**: two-part questions where only one part is answerable.
 - Two prompt styles, crossed with question type (20 cases per cell):
   - **strict** — "use only the document; say so if it doesn't contain the answer";
-  - **open** — "give a direct, specific answer", with no permission to abstain.
+  - **open** — "give a specific, complete answer with background details; don't say information
+    is missing". This deliberately induces hallucinations. A milder open prompt ("give a direct,
+    specific answer") made Claude Haiku 4.5 abstain on all 40 unanswerable questions, leaving
+    almost no hallucinated outputs to validate the judge against.
 - Category `hallucination_study`; titles are neutral IDs (`HS-01a` … `HS-40b`). The design
   labels are kept in each case's `_design` field, which the API ignores, so nothing in the app
   tells the labeler which cell a case is in.

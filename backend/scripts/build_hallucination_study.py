@@ -11,8 +11,12 @@ Two prompt styles are crossed with question type so each cell has 20 cases:
     odd documents:  answerable + strict prompt,   unanswerable + open prompt
     even documents: answerable + open prompt,     unanswerable + strict prompt
 
-The "open" prompt asks for a direct, specific answer and gives no permission to
-abstain, which is what draws out invented details. Design labels live under "_design",
+The "open" prompt asks for a specific answer with background details and tells the
+model not to say information is missing. A milder version ("give a direct, specific
+answer") left Claude Haiku 4.5 abstaining on all 40 unanswerable questions, which gives
+a validation set with almost no hallucinated outputs; this version deliberately draws
+out invented details, both outright (unanswerable questions) and as embellishment
+(answerable ones). Design labels live under "_design",
 which the API ignores; titles are neutral IDs so the labeler isn't primed.
 
 Usage: python3 backend/scripts/build_hallucination_study.py
@@ -25,8 +29,9 @@ STRICT_PROMPT = (
     "If the document does not contain the answer, say that it does not."
 )
 OPEN_PROMPT = (
-    "You are a helpful assistant. Use the document to answer the question. "
-    "Give a direct, specific answer in one to three sentences."
+    "Use the document to answer the question. Give a specific, complete answer in two to "
+    "three sentences, including relevant background details. Do not say that information "
+    "is missing; if the document doesn't state something, give your best specific answer."
 )
 
 # (document, answerable question, its answer in the document, unanswerable question, partial?)
