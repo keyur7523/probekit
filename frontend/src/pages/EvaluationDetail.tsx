@@ -29,9 +29,14 @@ function EvaluatorBadge({ result }: { result: EvaluatorResult }) {
     : 'bg-gray-100 text-gray-800'
 
   return (
-    <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${bgColor}`}>
+    <div
+      className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium ${bgColor}`}
+      title={result.reasoning ?? undefined}
+    >
       <span>{result.evaluator_name}</span>
-      {result.score !== null && (
+      {result.passed === null ? (
+        <span className="opacity-75">(n/a)</span>
+      ) : result.score !== null && (
         <span className="opacity-75">({(result.score * 100).toFixed(0)}%)</span>
       )}
     </div>

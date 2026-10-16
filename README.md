@@ -210,9 +210,11 @@ I built five core evaluators for single-turn runs, plus a verbosity evaluator fo
 | **Instruction Adherence** | Rule-based | Does output follow constraints? (JSON validity, required fields, length limits, forbidden terms) |
 | **Format Consistency** | Rule-based | Does output match expected format? Validates JSON schema, markdown structure, regex patterns |
 | **Refusal Behavior** | Rule-based (pattern matching) | Does model refuse appropriately? Classifies responses as refusal/abstention/clarification/answer |
-| **Hallucination Check** | LLM-judged (two-step claim extraction and verification) | Are claims grounded in provided context? Claude Sonnet 4 extracts claims, then verifies each against the context — two API calls per output, not deterministic |
+| **Hallucination Check** | LLM-judged (two-step claim extraction and verification) | Are claims grounded in provided context? Claude Sonnet 5.5 (at low effort) extracts claims, then verifies each against the context — two API calls per output, not deterministic |
 | **Output Stability** | Lexical (Jaccard word overlap) | Is output consistent across re-runs at several temperatures? Paraphrases with the same meaning can score as unstable |
 | **Verbosity Stability** | Rule-based (length statistics) | (Conversations) Does response length drift over turns? Measures drift slope, growth ratio |
+
+A check that doesn't apply to a test case (no source context for the hallucination check, no expected format, no refusal expectation — e.g. on hallucination-category tests, where answering and saying "I don't know" can both be right) records **n/a** and is left out of pass rates and regression sample sizes.
 
 Because the hallucination check is an LLM judge, it should be validated against human labels (via the annotation workflow) before its verdicts are trusted.
 

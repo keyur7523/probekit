@@ -46,25 +46,31 @@ Format your response as:
 
 Verification:"""
 
-    def __init__(self, model_id: str = "claude-sonnet-4-20250514"):
+    # Judge model; classification/extraction work, so low effort keeps thinking short
+    JUDGE_MODEL = "claude-sonnet-5-5"
+    JUDGE_EFFORT = "low"
+
+    def __init__(self, model_id: str = JUDGE_MODEL):
         self.client = ClaudeClient(model_id=model_id)
 
     async def evaluate(self, context: EvaluationContext) -> EvaluatorOutput:
         # If no context provided, we can't check for hallucinations
         if not context.context:
+            # Not applicable: record no verdict so it is excluded from pass rates
             return EvaluatorOutput(
                 evaluator_name=self.name,
-                passed=True,
-                score=1.0,
+                passed=None,
+                score=None,
                 details={"skipped": True, "reason": "No context provided for verification"},
-                reasoning="Hallucination check skipped - no source context provided",
+                reasoning="Not applicable - no source context to check claims against",
             )
 
         # Step 1: Extract claims from the response
         extraction_response = await self.client.generate(
             prompt=self.EXTRACTION_PROMPT.format(response=context.output),
             temperature=0.0,
-            max_tokens=1000,
+            max_tokens=4000,
+            effort=self.JUDGE_EFFORT,
         )
 
         claims_text = extraction_response.content.strip()
@@ -85,7 +91,8 @@ Verification:"""
                 claims=claims_text,
             ),
             temperature=0.0,
-            max_tokens=2000,
+            max_tokens=8000,
+            effort=self.JUDGE_EFFORT,
         )
 
         # Step 3: Parse verification results

@@ -20,7 +20,7 @@ class FormatEvaluator(BaseEvaluator):
 
     def __init__(
         self,
-        expected_format: str = "json",  # "json", "markdown", "text", "custom"
+        expected_format: str | None = None,  # "json", "markdown", "regex", "csv", "custom"; None = from test case
         json_schema: dict[str, Any] | None = None,
         markdown_headers: list[str] | None = None,
         custom_pattern: str | None = None,
@@ -59,12 +59,13 @@ class FormatEvaluator(BaseEvaluator):
         elif format_type == "custom" and self.custom_pattern:
             return await self._validate_pattern(output, self.custom_pattern)
         else:
+            # Not applicable: no format configured on the evaluator or the test case
             return EvaluatorOutput(
                 evaluator_name=self.name,
-                passed=True,
-                score=1.0,
-                details={"format": "text", "validated": False},
-                reasoning="No specific format validation configured",
+                passed=None,
+                score=None,
+                details={"format": format_type or "unspecified", "validated": False},
+                reasoning="Not applicable - no expected format set for this test case",
             )
 
     async def _validate_json(self, output: str, schema: dict[str, Any] | None) -> EvaluatorOutput:

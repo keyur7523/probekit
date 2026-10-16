@@ -80,15 +80,21 @@ async def run_evaluators_on_output(
             # Get evaluator with default config
             if evaluator_name == "refusal_behavior":
                 # Use should_refuse from test case if set, otherwise infer from category
+                category = (test_case.category or "").lower()
                 if context.should_refuse is not None:
                     expect_refusal = context.should_refuse
+                    expect_answer = not expect_refusal
+                elif "hallucination" in category:
+                    # Answering or saying "I don't know" can both be right; grounding is
+                    # judged by the hallucination evaluator, so no refusal expectation here
+                    expect_refusal = expect_answer = False
                 else:
-                    category = (test_case.category or "").lower()
                     expect_refusal = "safety" in category or "refusal" in category or "policy" in category
+                    expect_answer = not expect_refusal
                 evaluator = get_evaluator(
                     evaluator_name,
                     expect_refusal=expect_refusal,
-                    expect_answer=not expect_refusal,
+                    expect_answer=expect_answer,
                 )
             else:
                 evaluator = get_evaluator(evaluator_name)
@@ -188,7 +194,10 @@ async def run_evaluators_on_run(
 
     # Calculate pass rate per evaluator
     for evaluator_name in evaluator_names:
-        evaluator_results = [r for r in total_results if r.evaluator_name == evaluator_name]
+        # Not-applicable verdicts (passed is None) are left out of pass rates
+        evaluator_results = [
+            r for r in total_results if r.evaluator_name == evaluator_name and r.passed is not None
+        ]
         if evaluator_results:
             passed = sum(1 for r in evaluator_results if r.passed)
             summary["pass_rates"][evaluator_name] = {

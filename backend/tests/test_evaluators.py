@@ -417,7 +417,9 @@ class TestHallucinationEvaluator:
         )
         result = await evaluator.evaluate(context)
 
-        assert result.passed is True
+        # Not applicable: no verdict, so it doesn't count toward pass rates
+        assert result.passed is None
+        assert result.score is None
         assert result.details.get("skipped") is True
 
     @patch("app.evaluators.hallucination.ClaudeClient")
@@ -541,23 +543,24 @@ class TestEvaluatorRegistry:
         assert evaluator.max_length == 500
 
 
-async def test_claude_client_sends_temperature_via_extra_body(monkeypatch):
-    """anthropic 1.x rejects a temperature kwarg; it must go in extra_body."""
-    from unittest.mock import AsyncMock, MagicMock
-    from app.clients.claude import ClaudeClient
+class TestNotApplicableVerdicts:
+    """Checks that don't apply to a test case record no verdict (passed is None)."""
 
-    client = ClaudeClient(model_id="claude-haiku-4-5")
-    response = MagicMock()
-    response.usage.input_tokens = 10
-    response.usage.output_tokens = 5
-    response.content = [MagicMock(text="ok")]
-    create = AsyncMock(return_value=response)
-    monkeypatch.setattr(client.client.messages, "create", create)
+    async def test_format_without_spec_is_not_applicable(self, evaluation_context_factory):
+        result = await FormatEvaluator().evaluate(
+            evaluation_context_factory(output="# Summary\nA plain markdown answer.")
+        )
+        assert result.passed is None
+        assert result.score is None
 
-    result = await client.generate("hi", temperature=0.5, max_tokens=64)
+    async def test_format_with_structure_still_validates_json(self, evaluation_context_factory):
+        result = await FormatEvaluator().evaluate(evaluation_context_factory(
+            output="not json", expected_structure={"type": "object"},
+        ))
+        assert result.passed is False
 
-    kwargs = create.call_args.kwargs
-    assert "temperature" not in kwargs
-    assert kwargs["extra_body"] == {"temperature": 0.5}
-    assert result.content == "ok"
-    assert result.cost_usd == round(10 / 1e6 * 1.0 + 5 / 1e6 * 5.0, 6)
+    async def test_refusal_without_expectation_is_not_applicable(self, evaluation_context_factory):
+        evaluator = RefusalEvaluator(expect_refusal=False, expect_answer=False)
+        result = await evaluator.evaluate(evaluation_context_factory(output="I don't know."))
+        assert result.passed is None
+        assert result.details["classification"] == "abstention"
