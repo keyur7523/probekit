@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { dashboardApi } from '../api/client'
 import { DemoBadge, DemoDataNotice } from '../components/DemoData'
+import { RegressionVerdict } from '../components/RegressionStatus'
 import {
   ScoreTrendsChart,
   ModelComparisonChart,
@@ -261,9 +262,12 @@ export default function Dashboard() {
                       <p className="text-xs text-gray-500">{comparison.note || 'Not enough runs to compare'}</p>
                     )}
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${comparison.has_regression ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-                    {comparison.has_regression ? 'Regression detected' : 'No regression'}
-                  </span>
+                  {comparison.previous_run && (
+                    <RegressionVerdict
+                      hasRegression={comparison.has_regression}
+                      hasInsufficientData={comparison.has_insufficient_data}
+                    />
+                  )}
                 </div>
                 {comparison.has_regression && comparison.regressions?.length ? (
                   <div className="mt-2 text-xs text-red-700">

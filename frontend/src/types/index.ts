@@ -65,6 +65,10 @@ export interface EvaluatorRegressionDelta {
   current_rate: number
   previous_rate: number
   delta: number
+  current_n: number
+  previous_n: number
+  p_value: number | null
+  status: 'regressed' | 'improved' | 'no_significant_change' | 'insufficient_data'
   regressed: boolean
 }
 
@@ -73,6 +77,7 @@ export interface RunComparison {
   previous_timestamp: string
   deltas: EvaluatorRegressionDelta[]
   has_regression: boolean
+  has_insufficient_data: boolean
 }
 
 export interface EvaluationRun {

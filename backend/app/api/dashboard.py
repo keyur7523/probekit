@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models import EvaluationRun, EvaluationOutput, EvaluatorResult, RunStatus, TestCase, HumanAnnotation
 from app.services.agreement import ConfusionMatrix, normalize_label, summarize as summarize_agreement
+from app.services.regression import ALPHA, MIN_SAMPLES, REGRESSED, INSUFFICIENT_DATA, assess_change
 
 router = APIRouter()
 
@@ -51,6 +52,8 @@ def _calculate_run_stats(run: EvaluationRun) -> dict:
     for model, counts in model_pass_counts.items():
         model_stats[model] = {
             'pass_rate': _rate(counts['passed'], counts['total']),
+            'passed': counts['passed'],
+            'total': counts['total'],
             'avg_latency_ms': round(sum(model_latency.get(model, [])) / len(model_latency.get(model, [1])), 1)
             if model_latency.get(model) else 0.0,
             'avg_cost_usd': round(sum(model_costs.get(model, [])) / len(model_costs.get(model, [1])), 6)
@@ -59,10 +62,12 @@ def _calculate_run_stats(run: EvaluationRun) -> dict:
 
     return {
         'pass_rate': _rate(total_passed, total_results),
+        'passed': total_passed,
         'total_evaluations': total_results,
         'cost_usd': round(run.total_cost_usd or 0.0, 6),
         'duration_ms': int(run.total_duration_ms or 0),
         'evaluator_pass_rates': evaluator_pass_rates,
+        'evaluator_counts': {name: dict(values) for name, values in evaluator_counts.items()},
         'model_stats': model_stats,
     }
 
@@ -367,6 +372,8 @@ async def get_recent_activity(
 @router.get('/regressions')
 async def get_regressions(
     include_demo: bool = Query(False, description='Include seeded demo runs'),
+    min_samples: int = Query(MIN_SAMPLES, ge=1, description='Minimum results per evaluator in each run'),
+    alpha: float = Query(ALPHA, gt=0, lt=1, description='Two-sided significance level'),
     db: AsyncSession = Depends(get_db),
 ):
     """Compare evaluator pass rates between the two most recent runs per prompt version."""
@@ -426,17 +433,27 @@ async def get_regressions(
         regressions = []
         evaluator_names = set(current_stats.keys()) | set(previous_stats.keys())
         for name in sorted(evaluator_names):
-            current_rate = current_stats.get(name, {}).get('rate')
-            previous_rate = previous_stats.get(name, {}).get('rate')
+            current = current_stats.get(name, {'passed': 0, 'total': 0})
+            previous = previous_stats.get(name, {'passed': 0, 'total': 0})
+            current_rate = current.get('rate')
+            previous_rate = previous.get('rate')
             delta = None
             if current_rate is not None and previous_rate is not None:
                 delta = round(current_rate - previous_rate, 3)
+            change = assess_change(
+                previous['passed'], previous['total'], current['passed'], current['total'],
+                min_samples=min_samples, alpha=alpha,
+            )
             regressions.append({
                 'evaluator_name': name,
                 'current_rate': current_rate,
                 'previous_rate': previous_rate,
                 'delta': delta,
-                'regressed': delta is not None and delta < 0,
+                'current_n': change['current_n'],
+                'previous_n': change['baseline_n'],
+                'p_value': change['p_value'],
+                'status': change['status'],
+                'regressed': change['status'] == REGRESSED,
             })
 
         has_regression = any(r['regressed'] for r in regressions)
@@ -453,9 +470,13 @@ async def get_regressions(
             },
             'regressions': regressions,
             'has_regression': has_regression,
+            'has_insufficient_data': any(r['status'] == INSUFFICIENT_DATA for r in regressions),
         })
 
-    return {'comparisons': comparisons}
+    return {
+        'comparisons': comparisons,
+        'criteria': {'min_samples': min_samples, 'alpha': alpha, 'test': 'two-proportion z-test (two-sided)'},
+    }
 
 
 @router.get('/versions')
@@ -501,9 +522,15 @@ async def compare_versions(
     baseline_version: str = Query(..., alias='baseline_version'),
     current_version: str = Query(..., alias='current_version'),
     regression_threshold: float = Query(5.0, alias='regression_threshold'),
+    min_samples: int = Query(MIN_SAMPLES, ge=1, description='Minimum results per metric in each run'),
+    alpha: float = Query(ALPHA, gt=0, lt=1, description='Two-sided significance level'),
     db: AsyncSession = Depends(get_db),
 ):
-    """Compare two prompt versions and flag regressions."""
+    """Compare two prompt versions and flag regressions.
+
+    A drop is flagged only when it is at least regression_threshold points, both runs have
+    at least min_samples results, and a two-proportion z-test is significant at alpha.
+    """
     if baseline_version == current_version:
         return {'error': 'Baseline and current versions must differ'}
 
@@ -538,9 +565,22 @@ async def compare_versions(
     }
 
     regressions = []
+    insufficient_data = []
 
     def severity(delta: float) -> str:
         return 'high' if abs(delta) >= regression_threshold * 2 else 'medium'
+
+    def judge(metric: str, delta: float, baseline: dict, current: dict) -> tuple[bool, dict]:
+        change = assess_change(
+            baseline['passed'], baseline['total'], current['passed'], current['total'],
+            min_samples=min_samples, alpha=alpha,
+        )
+        if change['status'] == INSUFFICIENT_DATA:
+            insufficient_data.append(metric)
+        is_regression = delta <= -regression_threshold and change['status'] == REGRESSED
+        return is_regression, change
+
+    empty_counts = {'passed': 0, 'total': 0}
 
     # Evaluator deltas
     evaluator_names = set(baseline_stats['evaluator_pass_rates'].keys()) | set(current_stats['evaluator_pass_rates'].keys())
@@ -548,12 +588,17 @@ async def compare_versions(
         baseline_rate = baseline_stats['evaluator_pass_rates'].get(evaluator, 0.0)
         current_rate = current_stats['evaluator_pass_rates'].get(evaluator, 0.0)
         delta = round(current_rate - baseline_rate, 1)
-        is_regression = delta <= -regression_threshold
+        is_regression, change = judge(
+            evaluator, delta,
+            baseline_stats['evaluator_counts'].get(evaluator, empty_counts),
+            current_stats['evaluator_counts'].get(evaluator, empty_counts),
+        )
         comparison['evaluators'][evaluator] = {
             'baseline': baseline_rate,
             'current': current_rate,
             'delta': delta,
             'regression': is_regression,
+            **change,
         }
         if is_regression:
             regressions.append({
@@ -562,6 +607,7 @@ async def compare_versions(
                 'baseline': baseline_rate,
                 'current': current_rate,
                 'delta': delta,
+                'p_value': change['p_value'],
                 'severity': severity(delta),
                 'message': f"{evaluator} pass rate dropped by {abs(delta)}%",
             })
@@ -569,10 +615,11 @@ async def compare_versions(
     # Model deltas (pass rate only)
     model_names = set(baseline_stats['model_stats'].keys()) | set(current_stats['model_stats'].keys())
     for model in model_names:
-        baseline_model = baseline_stats['model_stats'].get(model, {'pass_rate': 0.0, 'avg_latency_ms': 0.0, 'avg_cost_usd': 0.0})
-        current_model = current_stats['model_stats'].get(model, {'pass_rate': 0.0, 'avg_latency_ms': 0.0, 'avg_cost_usd': 0.0})
+        empty_model = {'pass_rate': 0.0, 'passed': 0, 'total': 0, 'avg_latency_ms': 0.0, 'avg_cost_usd': 0.0}
+        baseline_model = baseline_stats['model_stats'].get(model, empty_model)
+        current_model = current_stats['model_stats'].get(model, empty_model)
         delta = round(current_model['pass_rate'] - baseline_model['pass_rate'], 1)
-        is_regression = delta <= -regression_threshold
+        is_regression, change = judge(model, delta, baseline_model, current_model)
         comparison['models'][model] = {
             'baseline': baseline_model,
             'current': current_model,
@@ -582,6 +629,7 @@ async def compare_versions(
                 'avg_cost_usd': round(current_model['avg_cost_usd'] - baseline_model['avg_cost_usd'], 6),
             },
             'regression': is_regression,
+            **change,
         }
         if is_regression:
             regressions.append({
@@ -590,19 +638,27 @@ async def compare_versions(
                 'baseline': baseline_model['pass_rate'],
                 'current': current_model['pass_rate'],
                 'delta': delta,
+                'p_value': change['p_value'],
                 'severity': severity(delta),
                 'message': f"{model} pass rate dropped by {abs(delta)}%",
             })
 
     # Overall regression
     overall_delta = comparison['overall']['pass_rate_delta']
-    if overall_delta <= -regression_threshold:
+    is_regression, change = judge(
+        'overall_pass_rate', overall_delta,
+        {'passed': baseline_stats['passed'], 'total': baseline_stats['total_evaluations']},
+        {'passed': current_stats['passed'], 'total': current_stats['total_evaluations']},
+    )
+    comparison['overall'].update(change)
+    if is_regression:
         regressions.append({
             'type': 'overall',
             'metric': 'overall_pass_rate',
             'baseline': baseline_stats['pass_rate'],
             'current': current_stats['pass_rate'],
             'delta': overall_delta,
+            'p_value': change['p_value'],
             'severity': severity(overall_delta),
             'message': f"Overall pass rate dropped by {abs(overall_delta)}%",
         })
@@ -627,6 +683,8 @@ async def compare_versions(
         'has_regressions': len(regressions) > 0,
         'regression_count': len(regressions),
         'threshold': regression_threshold,
+        'insufficient_data': insufficient_data,
+        'criteria': {'min_samples': min_samples, 'alpha': alpha, 'test': 'two-proportion z-test (two-sided)'},
     }
 
 

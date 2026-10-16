@@ -13,7 +13,7 @@ The current state of prompt evaluation is immature. "Is this response good?" is 
 - **Human annotation workflow** — label model outputs and compare each automatic
   evaluator's verdict against human labels (agreement, Cohen's kappa, confusion
   matrix, and sample size per evaluator).
-- **Regression detection** — Compare prompt versions, flag regressions automatically
+- **Regression detection** — Compare prompt versions and flag a pass-rate drop only when both runs have at least 20 results for that evaluator and a two-sided two-proportion z-test is significant (p < 0.05); smaller samples are reported as "insufficient data"
 - **Dashboard** — Visualize trends, model comparison, evaluator performance over time
 
 ## Quick Start
@@ -106,8 +106,8 @@ python3 backend/scripts/seed_demo_runs.py
 - `GET /api/dashboard/model-comparison` — Model comparison stats
 - `GET /api/dashboard/evaluator-breakdown` — Evaluator summary stats
 - `GET /api/dashboard/versions` — Latest run per prompt version
-- `GET /api/dashboard/compare` — Compare two versions and flag regressions
-- `GET /api/dashboard/regressions` — Latest regressions per version (demo runs excluded; `?include_demo=true` to opt in)
+- `GET /api/dashboard/compare` — Compare two versions and flag regressions (drop ≥ `regression_threshold` points and significant; `min_samples`, `alpha` adjustable)
+- `GET /api/dashboard/regressions` — Latest regressions per version, with per-evaluator n, p-value and status (`regressed`, `improved`, `no_significant_change`, `insufficient_data`); `min_samples`, `alpha` adjustable (demo runs excluded; `?include_demo=true` to opt in)
 - `GET /api/dashboard/annotation-accuracy` — Human vs evaluator agreement per evaluator: n, raw agreement with 95% Wilson interval, Cohen's kappa, confusion matrix, and counts of skipped (unrecognized or unscored) labels (demo runs excluded; `?include_demo=true` to opt in)
 
 ## Example Usage

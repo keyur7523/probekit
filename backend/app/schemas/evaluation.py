@@ -75,6 +75,10 @@ class EvaluatorRegressionDelta(BaseModel):
     current_rate: float
     previous_rate: float
     delta: float
+    current_n: int
+    previous_n: int
+    p_value: float | None
+    status: str
     regressed: bool
 
 
@@ -83,6 +87,7 @@ class RunComparison(BaseModel):
     previous_timestamp: datetime
     deltas: list[EvaluatorRegressionDelta]
     has_regression: bool
+    has_insufficient_data: bool
 
 
 class EvaluationRunDetailResponse(EvaluationRunResponse):

@@ -256,6 +256,7 @@ export interface Regression {
   baseline: number
   current: number
   delta: number
+  p_value: number | null
   severity: 'high' | 'medium'
   message: string
 }
@@ -309,18 +310,35 @@ export interface ComparisonResponse {
       current: number
       delta: number
       regression: boolean
-    }>
+    } & ChangeAssessment>
     models: Record<string, {
       baseline: { pass_rate: number; avg_latency_ms: number; avg_cost_usd: number }
       current: { pass_rate: number; avg_latency_ms: number; avg_cost_usd: number }
       deltas: { pass_rate: number; avg_latency_ms: number; avg_cost_usd: number }
       regression: boolean
-    }>
+    } & ChangeAssessment>
   }
   regressions?: Regression[]
   has_regressions?: boolean
   regression_count?: number
   threshold?: number
+  insufficient_data?: string[]
+  criteria?: RegressionCriteria
+}
+
+export type ChangeStatus = 'regressed' | 'improved' | 'no_significant_change' | 'insufficient_data'
+
+export interface ChangeAssessment {
+  status: ChangeStatus
+  p_value: number | null
+  baseline_n: number
+  current_n: number
+}
+
+export interface RegressionCriteria {
+  min_samples: number
+  alpha: number
+  test: string
 }
 
 export interface RegressionItem {
@@ -328,6 +346,10 @@ export interface RegressionItem {
   current_rate: number | null
   previous_rate: number | null
   delta: number | null
+  current_n: number
+  previous_n: number
+  p_value: number | null
+  status: ChangeStatus
   regressed: boolean
 }
 
@@ -343,11 +365,13 @@ export interface VersionComparison {
   } | null
   regressions: RegressionItem[]
   has_regression: boolean
+  has_insufficient_data?: boolean
   note?: string
 }
 
 export interface RegressionsResponse {
   comparisons: VersionComparison[]
+  criteria: RegressionCriteria
 }
 
 export default api

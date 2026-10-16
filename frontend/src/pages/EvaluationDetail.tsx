@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { evaluationsApi, annotationsApi } from '../api/client'
 import { DemoBadge, DemoDataNotice } from '../components/DemoData'
+import { RegressionVerdict, formatChangeStatus } from '../components/RegressionStatus'
 import type { EvaluationRun, EvaluationOutput, EvaluatorResult, Evaluator } from '../types'
 
 function StatusBadge({ status }: { status: EvaluationRun['status'] }) {
@@ -374,9 +375,10 @@ export default function EvaluationDetail() {
               <h2 className="text-lg font-semibold text-gray-900">Regression Check</h2>
               <p className="text-sm text-gray-500">Compared to previous run for this prompt version.</p>
             </div>
-            <span className={`text-xs px-2 py-1 rounded-full ${run.comparison.has_regression ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-              {run.comparison.has_regression ? 'Regression detected' : 'No regression'}
-            </span>
+            <RegressionVerdict
+              hasRegression={run.comparison.has_regression}
+              hasInsufficientData={run.comparison.has_insufficient_data}
+            />
           </div>
           <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
             <span>Previous run: {new Date(run.comparison.previous_timestamp).toLocaleString()}</span>
@@ -393,7 +395,10 @@ export default function EvaluationDetail() {
                     {item.delta >= 0 ? `+${item.delta}` : item.delta}%
                   </span>
                 </div>
-                <p className="text-xs text-gray-500">{item.previous_rate}% → {item.current_rate}%</p>
+                <p className="text-xs text-gray-500">
+                  {item.previous_rate}% (n={item.previous_n}) → {item.current_rate}% (n={item.current_n})
+                  {' • '}{formatChangeStatus(item.status, item.p_value)}
+                </p>
               </div>
             ))}
           </div>
