@@ -201,8 +201,9 @@ export interface ModelComparisonResponse {
     pass_rate: number
     avg_latency_ms: number
     avg_cost_usd: number
+    is_local?: boolean
     total_evaluations: number
-    [key: string]: string | number
+    [key: string]: string | number | boolean | undefined
   }>
 }
 
@@ -225,6 +226,7 @@ export interface RecentActivityResponse {
     is_demo?: boolean
     timestamp: string
     models: string[]
+    all_models_local?: boolean
     test_case_count: number
     total_evaluations: number
     passed: number
@@ -278,6 +280,7 @@ export interface ComparisonResponse {
         pass_rate: number
         avg_latency_ms: number
         avg_cost_usd: number
+        is_local?: boolean
       }>
     }
   }
@@ -296,6 +299,7 @@ export interface ComparisonResponse {
         pass_rate: number
         avg_latency_ms: number
         avg_cost_usd: number
+        is_local?: boolean
       }>
     }
   }
@@ -313,7 +317,7 @@ export interface ComparisonResponse {
     } & ChangeAssessment>
     models: Record<string, {
       baseline: { pass_rate: number; avg_latency_ms: number; avg_cost_usd: number }
-      current: { pass_rate: number; avg_latency_ms: number; avg_cost_usd: number }
+      current: { pass_rate: number; avg_latency_ms: number; avg_cost_usd: number; is_local?: boolean }
       deltas: { pass_rate: number; avg_latency_ms: number; avg_cost_usd: number }
       regression: boolean
     } & ChangeAssessment>

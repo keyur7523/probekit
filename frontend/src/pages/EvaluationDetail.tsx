@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { evaluationsApi, annotationsApi } from '../api/client'
 import { DemoBadge, DemoDataNotice } from '../components/DemoData'
 import { RegressionVerdict, formatChangeStatus } from '../components/RegressionStatus'
+import { formatCost } from '../utils/cost'
 import type { EvaluationRun, EvaluationOutput, EvaluatorResult, Evaluator } from '../types'
 
 function StatusBadge({ status }: { status: EvaluationRun['status'] }) {
@@ -75,7 +76,7 @@ function OutputCard({ output, runId }: { output: EvaluationOutput; runId: string
           </div>
           <div className="flex items-center gap-4 text-sm text-gray-500">
             <span>{output.latency_ms}ms</span>
-            <span>${output.cost_usd?.toFixed(6) || '0.000000'}</span>
+            <span>{formatCost(output.cost_usd, 6, output.is_local)}</span>
             <span>{output.input_tokens}→{output.output_tokens} tokens</span>
           </div>
         </div>
@@ -346,7 +347,7 @@ export default function EvaluationDetail() {
         <div className="bg-white rounded-lg border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Total Cost</p>
           <p className="text-xl font-semibold text-gray-900">
-            ${run.total_cost_usd?.toFixed(4) || '0.0000'}
+            {formatCost(run.total_cost_usd, 4, run.all_models_local)}
           </p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-4">

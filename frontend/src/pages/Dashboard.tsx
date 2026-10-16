@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { dashboardApi } from '../api/client'
 import { DemoBadge, DemoDataNotice } from '../components/DemoData'
 import { RegressionVerdict } from '../components/RegressionStatus'
+import { formatCost } from '../utils/cost'
 import {
   ScoreTrendsChart,
   ModelComparisonChart,
@@ -125,7 +126,7 @@ export default function Dashboard() {
           subtitle={`p50 • p99: ${metrics?.latency_p99_ms?.toFixed(0) || 0}ms`}
         />
         <StatCard
-          title="Total Cost"
+          title="Total API Cost"
           value={metricsLoading ? '...' : `$${metrics?.total_cost_usd?.toFixed(4) || '0.0000'}`}
           subtitle={`Avg latency: ${metrics?.avg_latency_ms?.toFixed(0) || 0}ms`}
         />
@@ -319,7 +320,7 @@ export default function Dashboard() {
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="text-sm font-medium text-gray-900">
-                        ${run.cost_usd.toFixed(4)}
+                        {formatCost(run.cost_usd, 4, run.all_models_local)}
                       </p>
                       <p className="text-xs text-gray-500">
                         {(run.duration_ms / 1000).toFixed(2)}s

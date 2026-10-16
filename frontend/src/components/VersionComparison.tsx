@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { dashboardApi, type Regression, type ComparisonResponse } from '../api/client'
 import { DemoDataNotice } from './DemoData'
 import { ChangeStatusBadge } from './RegressionStatus'
+import { formatCost } from '../utils/cost'
 
 function DeltaIndicator({ delta, suffix = '%', inverse = false }: { delta: number; suffix?: string; inverse?: boolean }) {
   const isPositive = inverse ? delta < 0 : delta > 0
@@ -71,6 +72,11 @@ function RegressionWarnings({ regressions }: { regressions: Regression[] }) {
   )
 }
 
+function allLocal(modelStats: Record<string, { is_local?: boolean }>): boolean {
+  const models = Object.values(modelStats)
+  return models.length > 0 && models.every((m) => m.is_local)
+}
+
 function ComparisonTable({ comparison }: { comparison: ComparisonResponse }) {
   if (!comparison.baseline || !comparison.current || !comparison.comparison) {
     return null
@@ -116,8 +122,8 @@ function ComparisonTable({ comparison }: { comparison: ComparisonResponse }) {
               </tr>
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Total Cost</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">${baseline.stats.cost_usd.toFixed(4)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">${current.stats.cost_usd.toFixed(4)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">{formatCost(baseline.stats.cost_usd, 4, allLocal(baseline.stats.model_stats))}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 text-right">{formatCost(current.stats.cost_usd, 4, allLocal(current.stats.model_stats))}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                   <DeltaIndicator delta={comp.overall.cost_delta} suffix="" inverse />
                 </td>
@@ -226,7 +232,7 @@ function ComparisonTable({ comparison }: { comparison: ComparisonResponse }) {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <span className="text-gray-600">${data.current.avg_cost_usd.toFixed(6)}</span>
+                          <span className="text-gray-600">{formatCost(data.current.avg_cost_usd, 6, data.current.is_local)}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">

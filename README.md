@@ -8,7 +8,7 @@ The current state of prompt evaluation is immature. "Is this response good?" is 
 
 ## Features
 
-- **Multi-model evaluation** — Run the same prompt against Claude, GPT-4, and local models; track cost and latency
+- **Multi-model evaluation** — Run the same prompt against Claude, GPT-4, and local models; track cost and latency (local Ollama runs are labelled "local (no API cost)" rather than $0.00)
 - **Pre-built evaluators** — Rule-based instruction adherence, format, and refusal checks; an LLM-judged hallucination check; lexical output stability (see [Evaluators](#evaluators))
 - **Human annotation workflow** — label model outputs and compare each automatic
   evaluator's verdict against human labels (agreement, Cohen's kappa, confusion

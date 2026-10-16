@@ -55,6 +55,7 @@ export interface EvaluationOutput {
   input_tokens: number | null
   output_tokens: number | null
   cost_usd: number | null
+  is_local?: boolean
   error: string | null
   evaluator_results: EvaluatorResult[]
   annotations: HumanAnnotation[]
@@ -92,6 +93,7 @@ export interface EvaluationRun {
   completed_count: number
   error_message: string | null
   is_demo?: boolean
+  all_models_local?: boolean
   test_case_titles?: string[]
   outputs?: EvaluationOutput[]
   comparison?: RunComparison | null

@@ -7,7 +7,7 @@ from app.models import TestCase, EvaluationRun, EvaluationOutput, RunStatus
 from app.clients.base import BaseLLMClient
 from app.clients.claude import ClaudeClient
 from app.clients.openai import OpenAIClient
-from app.clients.ollama import OllamaClient
+from app.clients.ollama import OllamaClient, is_local_model
 from app.schemas.evaluation import ModelConfig
 
 
@@ -19,7 +19,7 @@ def get_client_for_model(model_config: ModelConfig) -> BaseLLMClient:
         return ClaudeClient(model_id=model_config.model_id)
     elif "gpt" in model_id or "o1" in model_id:
         return OpenAIClient(model_id=model_config.model_id)
-    elif any(local in model_id for local in ["llama", "mistral", "mixtral", "phi", "qwen"]):
+    elif is_local_model(model_id):
         return OllamaClient(model_id=model_config.model_id)
     else:
         # Default to OpenAI for unknown models

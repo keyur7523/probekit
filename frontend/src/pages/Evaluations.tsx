@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { evaluationsApi, testCasesApi } from '../api/client'
 import { DemoBadge } from '../components/DemoData'
+import { formatCost } from '../utils/cost'
 import type { EvaluationRun, EvaluationRunCreate, ModelConfig, Evaluator } from '../types'
 
 function StatusBadge({ status }: { status: EvaluationRun['status'] }) {
@@ -413,7 +414,7 @@ export default function Evaluations() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${run.total_cost_usd?.toFixed(4) || '0.0000'}
+                      {formatCost(run.total_cost_usd, 4, run.all_models_local)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {((run.total_duration_ms || 0) / 1000).toFixed(2)}s

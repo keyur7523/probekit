@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models import EvaluationRun, EvaluationOutput, EvaluatorResult, RunStatus, TestCase, HumanAnnotation
 from app.services.agreement import ConfusionMatrix, normalize_label, summarize as summarize_agreement
+from app.clients.ollama import is_local_model
 from app.services.regression import ALPHA, MIN_SAMPLES, REGRESSED, INSUFFICIENT_DATA, assess_change
 
 router = APIRouter()
@@ -54,6 +55,7 @@ def _calculate_run_stats(run: EvaluationRun) -> dict:
             'pass_rate': _rate(counts['passed'], counts['total']),
             'passed': counts['passed'],
             'total': counts['total'],
+            'is_local': is_local_model(model),
             'avg_latency_ms': round(sum(model_latency.get(model, [])) / len(model_latency.get(model, [1])), 1)
             if model_latency.get(model) else 0.0,
             'avg_cost_usd': round(sum(model_costs.get(model, [])) / len(model_costs.get(model, [1])), 6)
@@ -205,6 +207,7 @@ async def get_model_comparison(db: AsyncSession = Depends(get_db)):
             'pass_rate': pass_rate,
             'avg_latency_ms': avg_latency,
             'avg_cost_usd': avg_cost,
+            'is_local': is_local_model(model),
             'total_evaluations': total,
         })
 
@@ -361,6 +364,7 @@ async def get_recent_activity(
             'is_demo': run.is_demo,
             'test_case_count': run.test_case_count,
             'models': [m.get('model_id') for m in (run.models or [])],
+            'all_models_local': bool(run.models) and all(is_local_model(m.get('model_id', '')) for m in run.models),
             'cost_usd': stats['cost_usd'],
             'duration_ms': stats['duration_ms'],
             'pass_rate': stats['pass_rate'],
@@ -615,7 +619,7 @@ async def compare_versions(
     # Model deltas (pass rate only)
     model_names = set(baseline_stats['model_stats'].keys()) | set(current_stats['model_stats'].keys())
     for model in model_names:
-        empty_model = {'pass_rate': 0.0, 'passed': 0, 'total': 0, 'avg_latency_ms': 0.0, 'avg_cost_usd': 0.0}
+        empty_model = {'pass_rate': 0.0, 'passed': 0, 'total': 0, 'avg_latency_ms': 0.0, 'avg_cost_usd': 0.0, 'is_local': is_local_model(model)}
         baseline_model = baseline_stats['model_stats'].get(model, empty_model)
         current_model = current_stats['model_stats'].get(model, empty_model)
         delta = round(current_model['pass_rate'] - baseline_model['pass_rate'], 1)
