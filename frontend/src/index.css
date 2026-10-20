@@ -44,6 +44,14 @@ main .grid > :nth-child(5) { animation-delay: 200ms; }
 /* Sidebar selection pill glides between items */
 .nav-pill { transition: transform 380ms var(--ease-spring), opacity 200ms ease; }
 
+/* Small screens: the sidebar slides in and out along the same edge, over a dimming scrim */
+.sidebar { transition: transform 380ms var(--ease-spring), box-shadow 380ms ease; }
+.scrim { transition: opacity 250ms ease; }
+/* Closed on small screens: hidden from Tab and screen readers once it has slid away */
+@media (max-width: 767px) {
+  .sidebar-closed { visibility: hidden; transition: transform 380ms var(--ease-spring), visibility 0s linear 380ms; }
+}
+
 /* Working state: a soft band sweeps the words, the dots count up (keeps the text colour) */
 button .working { white-space: nowrap; }
 .working-text {
@@ -80,6 +88,7 @@ button:disabled:has(.working) { opacity: 1; cursor: progress; }
   main .grid > * { animation-delay: 0ms !important; }
   button:not(:disabled):active, a:active { transform: none; }
   .nav-pill { transition: opacity 200ms ease; }
+  .sidebar { transition: none; }
   .working-text { animation: none; background: none; -webkit-text-fill-color: currentColor; }
   .working-dots::after { animation: none; content: '…'; }
   .skeleton { animation: none; }

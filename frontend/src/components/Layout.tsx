@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 
 interface LayoutProps {
@@ -59,14 +60,53 @@ const NAV_ROW_PX = 44
 
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
+  const [menuOpen, setMenuOpen] = useState(false)
   const activeIndex = navigation.findIndex((item) =>
     item.href === '/' ? location.pathname === '/' : location.pathname.startsWith(item.href)
   )
 
+  // Small screens: close the sheet after navigating, or on Escape
+  useEffect(() => setMenuOpen(false), [location.pathname])
+  useEffect(() => {
+    if (!menuOpen) return
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
+
   return (
     <div className="min-h-screen">
-      {/* Sidebar: a translucent material layer */}
-      <div className="material fixed inset-y-0 left-0 z-50 w-64 bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-r border-black/5">
+      {/* Small screens: translucent top bar with the menu button */}
+      <header className="material md:hidden sticky top-0 z-40 flex h-14 items-center gap-3 px-4 bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-b border-black/5">
+        <button
+          type="button"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Open navigation"
+          aria-expanded={menuOpen}
+          aria-controls="sidebar"
+          className="-ml-2 flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 hover:bg-black/[0.04]"
+        >
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+        <span className="text-base font-semibold tracking-tight text-gray-900">Behavioral Eval</span>
+      </header>
+
+      {/* Dimming scrim behind the open sheet; tap to close */}
+      <div
+        aria-hidden="true"
+        onClick={() => setMenuOpen(false)}
+        className={`scrim md:hidden fixed inset-0 z-40 bg-black/30 ${menuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      />
+
+      {/* Sidebar: a translucent material layer; a sheet from the left on small screens */}
+      <div
+        id="sidebar"
+        className={`sidebar material fixed inset-y-0 left-0 z-50 w-64 bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-r border-black/5 ${
+          menuOpen ? 'translate-x-0 shadow-lg' : 'sidebar-closed -translate-x-full md:translate-x-0'
+        }`}
+      >
         <div className="flex h-16 items-center gap-2.5 px-6">
           <div className="w-8 h-8 bg-gradient-to-b from-indigo-500 to-indigo-700 rounded-lg shadow-sm flex items-center justify-center">
             <span className="text-white font-semibold text-sm">BE</span>
@@ -99,8 +139,8 @@ export default function Layout({ children }: LayoutProps) {
       </div>
 
       {/* Main content: re-keyed per route so each page fades in */}
-      <div className="pl-64">
-        <main key={location.pathname} className="page-enter p-8">
+      <div className="md:pl-64">
+        <main key={location.pathname} className="page-enter p-4 md:p-8">
           {children}
         </main>
       </div>
