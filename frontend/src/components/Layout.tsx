@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useSwipeToClose } from './useSwipeToClose'
 
 interface LayoutProps {
   children: ReactNode
@@ -61,6 +62,10 @@ const NAV_ROW_PX = 44
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const sidebarRef = useRef<HTMLDivElement>(null)
+  const scrimRef = useRef<HTMLDivElement>(null)
+  const closeMenu = useCallback(() => setMenuOpen(false), [])
+  useSwipeToClose(sidebarRef, scrimRef, menuOpen, closeMenu)
   const activeIndex = navigation.findIndex((item) =>
     item.href === '/' ? location.pathname === '/' : location.pathname.startsWith(item.href)
   )
@@ -95,6 +100,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Dimming scrim behind the open sheet; tap to close */}
       <div
+        ref={scrimRef}
         aria-hidden="true"
         onClick={() => setMenuOpen(false)}
         className={`scrim md:hidden fixed inset-0 z-40 bg-black/30 ${menuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
@@ -103,7 +109,8 @@ export default function Layout({ children }: LayoutProps) {
       {/* Sidebar: a translucent material layer; a sheet from the left on small screens */}
       <div
         id="sidebar"
-        className={`sidebar material fixed inset-y-0 left-0 z-50 w-64 bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-r border-black/5 ${
+        ref={sidebarRef}
+        className={`sidebar material touch-pan-y fixed inset-y-0 left-0 z-50 w-64 bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-r border-black/5 ${
           menuOpen ? 'translate-x-0 shadow-lg' : 'sidebar-closed -translate-x-full md:translate-x-0'
         }`}
       >
