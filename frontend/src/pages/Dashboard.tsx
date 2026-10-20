@@ -28,7 +28,7 @@ function StatCard({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
       <p className="text-sm font-medium text-gray-500">{title}</p>
       <div className="mt-2 flex items-baseline gap-2">
-        <p className="text-3xl font-semibold text-gray-900">{value}</p>
+        <p className="text-3xl font-semibold tabular-nums text-gray-900">{value}</p>
         {trend && (
           <span
             className={`text-sm font-medium ${
@@ -106,7 +106,8 @@ export default function Dashboard() {
       {!!metrics?.demo_runs && <DemoDataNotice className="mb-8" />}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+      {/* Columns follow the space left beside the sidebar, not the window width */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(12rem,1fr))] gap-6 mb-8">
         <StatCard
           title="Test Cases"
           value={metricsLoading ? <span className="skeleton h-8 w-20 align-middle" /> : metrics?.total_test_cases || 0}
