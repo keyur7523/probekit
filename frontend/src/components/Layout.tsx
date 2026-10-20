@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { useSwipeToClose } from './useSwipeToClose'
+import { useSheetSwipe } from './useSheetSwipe'
 
 interface LayoutProps {
   children: ReactNode
@@ -64,8 +64,8 @@ export default function Layout({ children }: LayoutProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null)
   const scrimRef = useRef<HTMLDivElement>(null)
-  const closeMenu = useCallback(() => setMenuOpen(false), [])
-  useSwipeToClose(sidebarRef, scrimRef, menuOpen, closeMenu)
+  const edgeRef = useRef<HTMLDivElement>(null)
+  useSheetSwipe(sidebarRef, scrimRef, edgeRef, menuOpen, setMenuOpen)
   const activeIndex = navigation.findIndex((item) =>
     item.href === '/' ? location.pathname === '/' : location.pathname.startsWith(item.href)
   )
@@ -97,6 +97,9 @@ export default function Layout({ children }: LayoutProps) {
         </button>
         <span className="text-base font-semibold tracking-tight text-gray-900">Behavioral Eval</span>
       </header>
+
+      {/* Small screens: swipe in from this strip to pull the sidebar open */}
+      <div ref={edgeRef} aria-hidden="true" className="md:hidden fixed left-0 top-14 bottom-0 z-30 w-5 touch-pan-y" />
 
       {/* Dimming scrim behind the open sheet; tap to close */}
       <div
