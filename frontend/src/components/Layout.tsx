@@ -54,43 +54,53 @@ function CompareIcon({ className }: { className?: string }) {
   )
 }
 
+// h-10 link + mb-1 gap: the pill moves in steps of one row
+const NAV_ROW_PX = 44
+
 export default function Layout({ children }: LayoutProps) {
   const location = useLocation()
+  const activeIndex = navigation.findIndex((item) =>
+    item.href === '/' ? location.pathname === '/' : location.pathname.startsWith(item.href)
+  )
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
-        <div className="flex h-16 items-center gap-2 px-6 border-b border-gray-200">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">BE</span>
+    <div className="min-h-screen">
+      {/* Sidebar: a translucent material layer */}
+      <div className="material fixed inset-y-0 left-0 z-50 w-64 bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-r border-black/5">
+        <div className="flex h-16 items-center gap-2.5 px-6">
+          <div className="w-8 h-8 bg-gradient-to-b from-indigo-500 to-indigo-700 rounded-lg shadow-sm flex items-center justify-center">
+            <span className="text-white font-semibold text-sm">BE</span>
           </div>
-          <span className="text-xl font-semibold text-gray-900">Behavioral Eval</span>
+          <span className="text-lg font-semibold tracking-tight text-gray-900">Behavioral Eval</span>
         </div>
-        <nav className="mt-6 px-3">
-          {navigation.map((item) => {
-            const isActive = location.pathname === item.href
+        <nav className="relative mt-4 px-3">
+          <div
+            aria-hidden="true"
+            className="nav-pill absolute left-3 right-3 top-0 h-10 rounded-lg bg-indigo-600/10"
+            style={{ transform: `translateY(${Math.max(activeIndex, 0) * NAV_ROW_PX}px)`, opacity: activeIndex < 0 ? 0 : 1 }}
+          />
+          {navigation.map((item, index) => {
+            const isActive = index === activeIndex
             return (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg mb-1 transition-colors ${
-                  isActive
-                    ? 'bg-indigo-50 text-indigo-700'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                aria-current={isActive ? 'page' : undefined}
+                className={`relative flex h-10 items-center gap-3 px-3 rounded-lg mb-1 ${
+                  isActive ? 'text-indigo-700' : 'text-gray-600 hover:bg-black/[0.04] hover:text-gray-900'
                 }`}
               >
                 <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-gray-400'}`} />
-                <span className="font-medium">{item.name}</span>
+                <span className="font-medium text-[15px]">{item.name}</span>
               </Link>
             )
           })}
         </nav>
       </div>
 
-      {/* Main content */}
+      {/* Main content: re-keyed per route so each page fades in */}
       <div className="pl-64">
-        <main className="p-8">
+        <main key={location.pathname} className="page-enter p-8">
           {children}
         </main>
       </div>

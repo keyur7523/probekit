@@ -5,6 +5,7 @@ import { dashboardApi, type Regression, type ComparisonResponse } from '../api/c
 import { DemoDataNotice } from './DemoData'
 import { ChangeStatusBadge } from './RegressionStatus'
 import { formatCost } from '../utils/cost'
+import Working from './Working'
 
 function DeltaIndicator({ delta, suffix = '%', inverse = false }: { delta: number; suffix?: string; inverse?: boolean }) {
   const isPositive = inverse ? delta < 0 : delta > 0
@@ -373,7 +374,7 @@ export default function VersionComparison() {
       {/* Loading State */}
       {comparisonLoading && (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-          <p className="text-gray-500">Loading comparison...</p>
+          <p className="text-gray-500"><Working>Loading comparison</Working></p>
         </div>
       )}
 

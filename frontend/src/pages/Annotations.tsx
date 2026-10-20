@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { evaluationsApi, annotationsApi } from '../api/client'
+import Working from '../components/Working'
 import type { EvaluationOutput, EvaluationRun } from '../types'
 
 const ANNOTATION_TYPES = [
@@ -150,7 +151,7 @@ function AnnotationForm({
         disabled={!canAnnotate || !label || createAnnotationMutation.isPending}
         className="px-3 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded disabled:opacity-50"
       >
-        {createAnnotationMutation.isPending ? 'Saving...' : 'Save Annotation'}
+        {createAnnotationMutation.isPending ? <Working>Saving</Working> : 'Save Annotation'}
       </button>
       {!canAnnotate && (
         <p className="text-xs text-gray-500 mt-2">Annotations are disabled for errored outputs.</p>

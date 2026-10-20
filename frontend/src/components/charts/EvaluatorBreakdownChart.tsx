@@ -11,6 +11,7 @@ import {
   Cell,
   Legend,
 } from 'recharts'
+import { COLORS, GRID, chartMotion, tooltipStyle } from './theme'
 
 interface EvaluatorData {
   evaluator: string
@@ -27,14 +28,6 @@ interface EvaluatorBreakdownChartProps {
   chartType?: 'radar' | 'pie'
   title?: string
 }
-
-const COLORS = [
-  '#6366f1', // indigo
-  '#10b981', // emerald
-  '#f59e0b', // amber
-  '#ef4444', // red
-  '#8b5cf6', // violet
-]
 
 export default function EvaluatorBreakdownChart({
   data,
@@ -59,7 +52,7 @@ export default function EvaluatorBreakdownChart({
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie
+              <Pie {...chartMotion}
                 data={data}
                 cx="50%"
                 cy="50%"
@@ -74,12 +67,7 @@ export default function EvaluatorBreakdownChart({
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{
-                  backgroundColor: '#fff',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                }}
+                contentStyle={tooltipStyle}
                 formatter={(_value, _name, props) => {
                   const payload = props.payload as EvaluatorData | undefined
                   if (!payload) return ['', '']
@@ -104,7 +92,7 @@ export default function EvaluatorBreakdownChart({
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
-            <PolarGrid stroke="#e5e7eb" />
+            <PolarGrid stroke={GRID} />
             <PolarAngleAxis
               dataKey="display_name"
               tick={{ fontSize: 11, fill: '#6b7280' }}
@@ -115,20 +103,15 @@ export default function EvaluatorBreakdownChart({
               tick={{ fontSize: 10 }}
               tickFormatter={(value) => `${value}%`}
             />
-            <Radar
+            <Radar {...chartMotion}
               name="Pass Rate"
               dataKey="pass_rate"
-              stroke="#6366f1"
-              fill="#6366f1"
+              stroke={COLORS[0]}
+              fill={COLORS[0]}
               fillOpacity={0.5}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                fontSize: '12px',
-              }}
+              contentStyle={tooltipStyle}
               formatter={(value: number) => [`${value}%`, 'Pass Rate']}
             />
           </RadarChart>

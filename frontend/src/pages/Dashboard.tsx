@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { dashboardApi } from '../api/client'
@@ -19,7 +20,7 @@ function StatCard({
   trend,
 }: {
   title: string
-  value: string | number
+  value: ReactNode
   subtitle?: string
   trend?: { value: number; positive: boolean }
 }) {
@@ -108,26 +109,26 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <StatCard
           title="Test Cases"
-          value={metricsLoading ? '...' : metrics?.total_test_cases || 0}
+          value={metricsLoading ? <span className="skeleton h-8 w-20 align-middle" /> : metrics?.total_test_cases || 0}
         />
         <StatCard
           title="Evaluation Runs"
-          value={metricsLoading ? '...' : metrics?.completed_runs || 0}
+          value={metricsLoading ? <span className="skeleton h-8 w-20 align-middle" /> : metrics?.completed_runs || 0}
           subtitle={`${metrics?.total_runs || 0} total`}
         />
         <StatCard
           title="Overall Pass Rate"
-          value={metricsLoading ? '...' : `${metrics?.overall_pass_rate || 0}%`}
+          value={metricsLoading ? <span className="skeleton h-8 w-20 align-middle" /> : `${metrics?.overall_pass_rate || 0}%`}
           subtitle={`${metrics?.total_evaluator_results || 0} evaluations`}
         />
         <StatCard
           title="Latency"
-          value={metricsLoading ? '...' : `${metrics?.latency_p50_ms?.toFixed(0) || 0}ms`}
+          value={metricsLoading ? <span className="skeleton h-8 w-20 align-middle" /> : `${metrics?.latency_p50_ms?.toFixed(0) || 0}ms`}
           subtitle={`p50 • p99: ${metrics?.latency_p99_ms?.toFixed(0) || 0}ms`}
         />
         <StatCard
           title="Total API Cost"
-          value={metricsLoading ? '...' : `$${metrics?.total_cost_usd?.toFixed(4) || '0.0000'}`}
+          value={metricsLoading ? <span className="skeleton h-8 w-20 align-middle" /> : `$${metrics?.total_cost_usd?.toFixed(4) || '0.0000'}`}
           subtitle={`Avg latency: ${metrics?.avg_latency_ms?.toFixed(0) || 0}ms`}
         />
       </div>

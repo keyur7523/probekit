@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts'
+import { COLORS, GRID, chartMotion, tooltipStyle } from './theme'
 
 interface AnnotationAccuracyDatum {
   evaluator_name: string
@@ -19,14 +20,6 @@ interface AnnotationAccuracyChartProps {
   data: AnnotationAccuracyDatum[]
   title?: string
 }
-
-const COLORS = [
-  '#10b981',
-  '#6366f1',
-  '#f59e0b',
-  '#ef4444',
-  '#8b5cf6',
-]
 
 function prettyName(name: string): string {
   return name.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
@@ -54,7 +47,7 @@ export default function AnnotationAccuracyChart({
       <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 5, right: 20, left: 10, bottom: 40 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
             <XAxis
               dataKey="evaluator_name"
               tick={{ fontSize: 11 }}
@@ -69,16 +62,11 @@ export default function AnnotationAccuracyChart({
               tickFormatter={(value) => `${value}%`}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                fontSize: '12px',
-              }}
+              contentStyle={tooltipStyle}
               formatter={(value: number, _name, item) => [`${value}% (n=${item.payload.n})`, 'Raw agreement']}
               labelFormatter={(label) => prettyName(label)}
             />
-            <Bar dataKey="agreement" radius={[4, 4, 0, 0]}>
+            <Bar {...chartMotion} dataKey="agreement" radius={[4, 4, 0, 0]}>
               {data.map((_, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}

@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts'
+import { COLORS, GRID, chartMotion, tooltipStyle } from './theme'
 import { LOCAL_COST_LABEL } from '../../utils/cost'
 
 interface ModelData {
@@ -26,15 +27,6 @@ interface ModelComparisonChartProps {
   metric?: 'pass_rate' | 'avg_latency_ms' | 'avg_cost_usd'
   title?: string
 }
-
-const COLORS = [
-  '#6366f1', // indigo
-  '#10b981', // emerald
-  '#f59e0b', // amber
-  '#ef4444', // red
-  '#8b5cf6', // violet
-  '#ec4899', // pink
-]
 
 const METRIC_LABELS: Record<string, { label: string; format: (v: number) => string }> = {
   pass_rate: { label: 'Pass Rate', format: (v) => `${v}%` },
@@ -75,7 +67,7 @@ export default function ModelComparisonChart({
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 50 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
             <XAxis
               dataKey="model"
               tick={{ fontSize: 11 }}
@@ -90,12 +82,7 @@ export default function ModelComparisonChart({
               tickFormatter={metricConfig.format}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                fontSize: '12px',
-              }}
+              contentStyle={tooltipStyle}
               formatter={(value: number, _name, item) => [
                 metric === 'avg_cost_usd' && item.payload.is_local ? LOCAL_COST_LABEL : metricConfig.format(value),
                 metricConfig.label,
@@ -103,7 +90,7 @@ export default function ModelComparisonChart({
               labelFormatter={(label) => `Model: ${label}`}
             />
             <Legend wrapperStyle={{ fontSize: '12px' }} />
-            <Bar
+            <Bar {...chartMotion}
               dataKey={metric}
               name={metricConfig.label}
               radius={[4, 4, 0, 0]}

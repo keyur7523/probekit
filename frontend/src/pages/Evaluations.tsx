@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { evaluationsApi, testCasesApi } from '../api/client'
+import Working from '../components/Working'
 import { DemoBadge } from '../components/DemoData'
 import { formatCost } from '../utils/cost'
 import type { EvaluationRun, EvaluationRunCreate, ModelConfig, Evaluator } from '../types'
@@ -346,7 +347,7 @@ export default function Evaluations() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         {isLoading ? (
-          <div className="p-6 text-center text-gray-500">Loading...</div>
+          <div className="p-6 text-center text-gray-500"><Working>Loading evaluations</Working></div>
         ) : runs.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
             No evaluation runs yet. Start your first one!

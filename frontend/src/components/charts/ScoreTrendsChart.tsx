@@ -8,6 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
+import { COLORS, GRID, chartMotion, tooltipStyle } from './theme'
 import { parseDay } from '../../utils/date'
 
 interface TrendData {
@@ -19,14 +20,6 @@ interface ScoreTrendsChartProps {
   data: TrendData[]
   title?: string
 }
-
-const COLORS = [
-  '#6366f1', // indigo
-  '#10b981', // emerald
-  '#f59e0b', // amber
-  '#ef4444', // red
-  '#8b5cf6', // violet
-]
 
 const EVALUATOR_NAMES: Record<string, string> = {
   instruction_adherence: 'Instruction',
@@ -59,7 +52,7 @@ export default function ScoreTrendsChart({ data, title = 'Evaluation Score Trend
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke={GRID} />
             <XAxis
               dataKey="date"
               tick={{ fontSize: 12 }}
@@ -74,12 +67,7 @@ export default function ScoreTrendsChart({ data, title = 'Evaluation Score Trend
               tickFormatter={(value) => `${value}%`}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: '#fff',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                fontSize: '12px',
-              }}
+              contentStyle={tooltipStyle}
               formatter={(value: number) => [`${value}%`, '']}
               labelFormatter={(label) => parseDay(label).toLocaleDateString()}
             />
@@ -91,7 +79,7 @@ export default function ScoreTrendsChart({ data, title = 'Evaluation Score Trend
               }}
             />
             {metricKeys.map((key, index) => (
-              <Line
+              <Line {...chartMotion}
                 key={key}
                 type="monotone"
                 dataKey={key}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { testCasesApi } from '../api/client'
+import Working from '../components/Working'
 import type { TestCase, TestCaseCreate } from '../types'
 
 function TestCaseModal({
@@ -218,7 +219,7 @@ export default function TestCases() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         {isLoading ? (
-          <div className="p-6 text-center text-gray-500">Loading...</div>
+          <div className="p-6 text-center text-gray-500"><Working>Loading test cases</Working></div>
         ) : testCases.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
             No test cases yet. Create your first one!

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { evaluationsApi, annotationsApi } from '../api/client'
+import Working from '../components/Working'
 import { DemoBadge, DemoDataNotice } from '../components/DemoData'
 import { RegressionVerdict, formatChangeStatus } from '../components/RegressionStatus'
 import { formatCost } from '../utils/cost'
@@ -179,7 +180,7 @@ function OutputCard({ output, runId }: { output: EvaluationOutput; runId: string
                 disabled={!canAnnotate || !label || createAnnotationMutation.isPending}
                 className="px-3 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded disabled:opacity-50"
               >
-                {createAnnotationMutation.isPending ? 'Saving...' : 'Save Annotation'}
+                {createAnnotationMutation.isPending ? <Working>Saving</Working> : 'Save Annotation'}
               </button>
               {!canAnnotate && (
                 <p className="text-xs text-gray-500 mt-2">Annotations are disabled for errored outputs.</p>
@@ -268,7 +269,7 @@ function RunEvaluatorsModal({
               disabled={selectedEvaluators.length === 0 || runEvaluatorsMutation.isPending}
               className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg disabled:opacity-50"
             >
-              {runEvaluatorsMutation.isPending ? 'Running...' : 'Run Evaluators'}
+              {runEvaluatorsMutation.isPending ? <Working>Running evaluators</Working> : 'Run Evaluators'}
             </button>
           </div>
         </div>
@@ -290,7 +291,7 @@ export default function EvaluationDetail() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500"><Working>Loading run</Working></div>
       </div>
     )
   }
