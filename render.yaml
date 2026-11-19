@@ -1,5 +1,6 @@
 # Render Blueprint: Dashboard -> New -> Blueprint -> select this repo.
-# The frontend (Vercel) calls https://probekit.onrender.com/api, so keep the service name.
+# The frontend (Vercel) calls https://probekit-l9wa.onrender.com/api (Render added the suffix
+# because the name probekit was taken); a new service URL needs VITE_API_BASE_URL updated in Vercel.
 services:
   - type: web
     name: probekit
