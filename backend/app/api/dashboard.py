@@ -7,6 +7,7 @@ from sqlalchemy.orm import selectinload
 
 from app.database import get_db
 from app.models import EvaluationRun, EvaluationOutput, EvaluatorResult, RunStatus, TestCase, HumanAnnotation
+from app.models.evaluation import latest_verdicts
 from app.services.agreement import ConfusionMatrix, normalize_label, summarize as summarize_agreement
 from app.clients.ollama import is_local_model
 from app.services.regression import ALPHA, MIN_SAMPLES, REGRESSED, INSUFFICIENT_DATA, assess_change
@@ -29,7 +30,7 @@ def _calculate_run_stats(run: EvaluationRun) -> dict:
         if output.cost_usd is not None:
             model_costs[output.model].append(output.cost_usd)
 
-        for result in output.evaluator_results:
+        for result in output.latest_evaluator_results:
             if result.passed is None:  # not applicable: excluded from pass rates
                 continue
             total_results += 1
@@ -101,12 +102,13 @@ async def get_metrics(db: AsyncSession = Depends(get_db)):
     total_cost = (await db.execute(select(func.sum(EvaluationRun.total_cost_usd)))).scalar() or 0.0
     avg_latency = (await db.execute(select(func.avg(EvaluationOutput.latency_ms)))).scalar() or 0.0
     # Not-applicable verdicts (passed is NULL) are excluded from the pass rate
-    total_evaluator_results = (await db.execute(
-        select(func.count(EvaluatorResult.id)).where(EvaluatorResult.passed.isnot(None))
-    )).scalar() or 0
-    total_passed = (await db.execute(
-        select(func.count(EvaluatorResult.id)).where(EvaluatorResult.passed.is_(True))
-    )).scalar() or 0
+    # Latest verdict per output and evaluator only
+    verdicts = [
+        r for r in latest_verdicts((await db.execute(select(EvaluatorResult))).scalars().all())
+        if r.passed is not None
+    ]
+    total_evaluator_results = len(verdicts)
+    total_passed = sum(1 for r in verdicts if r.passed)
 
     overall_pass_rate = round((total_passed / total_evaluator_results) * 100, 1) if total_evaluator_results else 0.0
 
@@ -158,7 +160,7 @@ async def get_trends(
     for run in runs:
         day_key = run.timestamp.date().isoformat()
         for output in run.outputs:
-            for result in output.evaluator_results:
+            for result in output.latest_evaluator_results:
                 if result.passed is None:  # not applicable: excluded from pass rates
                     continue
                 entry = stats_by_date[day_key][result.evaluator_name]
@@ -200,7 +202,7 @@ async def get_model_comparison(db: AsyncSession = Depends(get_db)):
                 model_latency[output.model].append(output.latency_ms)
             if output.cost_usd is not None:
                 model_costs[output.model].append(output.cost_usd)
-            for result in output.evaluator_results:
+            for result in output.latest_evaluator_results:
                 if result.passed is None:  # not applicable: excluded from pass rates
                     continue
                 model_pass_counts[output.model]['total'] += 1
@@ -230,7 +232,7 @@ async def get_model_comparison(db: AsyncSession = Depends(get_db)):
 async def get_evaluator_breakdown(db: AsyncSession = Depends(get_db)):
     """Aggregate evaluator stats across all results."""
     result = await db.execute(select(EvaluatorResult))
-    results = result.scalars().all()
+    results = latest_verdicts(result.scalars().all())
 
     stats: dict[str, dict[str, float | int]] = defaultdict(lambda: {
         'total': 0,
@@ -435,7 +437,7 @@ async def get_regressions(
         def summarize(run: EvaluationRun) -> dict[str, dict[str, float | int]]:
             stats: dict[str, dict[str, float | int]] = {}
             for output in run.outputs:
-                for result in output.evaluator_results:
+                for result in output.latest_evaluator_results:
                     if result.passed is None:  # not applicable: excluded from pass rates
                         continue
                     entry = stats.setdefault(result.evaluator_name, {'passed': 0, 'total': 0})
@@ -729,6 +731,8 @@ async def get_refusal_stats(
         .where(EvaluatorResult.evaluator_name == 'refusal_behavior')
     )
     rows = result.all()
+    latest_ids = {r.id for r in latest_verdicts([row[0] for row in rows])}
+    rows = [row for row in rows if row[0].id in latest_ids]
 
     # Classify results
     fp_examples = []  # False Positives: refused when should answer

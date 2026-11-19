@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, computed_field
+from pydantic import AliasChoices, BaseModel, Field, computed_field
 from datetime import datetime
 from uuid import UUID
 from typing import Any
@@ -70,7 +70,10 @@ class EvaluationOutputResponse(BaseModel):
     output_tokens: int | None
     cost_usd: float | None
     error: str | None
-    evaluator_results: list[EvaluatorResultResponse] = []
+    # Latest verdict per evaluator; superseded re-runs stay in the database as history
+    evaluator_results: list[EvaluatorResultResponse] = Field(
+        default=[], validation_alias=AliasChoices("latest_evaluator_results", "evaluator_results"),
+    )
 
     @computed_field
     @property

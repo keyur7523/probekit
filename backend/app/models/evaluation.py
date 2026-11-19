@@ -1,11 +1,30 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import Column, String, Text, Integer, Float, Boolean, ForeignKey, Enum, JSON, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import enum
 from app.database import Base
 from app.models.types import UTCDateTime
+
+
+_EARLIEST = datetime.min.replace(tzinfo=timezone.utc)
+
+
+def _created(result) -> datetime:
+    # Rows loaded from the database are UTC-aware; ones created in this session may still be naive UTC
+    ts = result.created_at or _EARLIEST
+    return ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc)
+
+
+def latest_verdicts(results):
+    """Newest result per (output, evaluator). Re-running evaluators appends rows; only the latest counts."""
+    latest = {}
+    for result in results:
+        key = (result.output_id, result.evaluator_name)
+        if key not in latest or _created(result) > _created(latest[key]):
+            latest[key] = result
+    return list(latest.values())
 
 
 class RunStatus(str, enum.Enum):
@@ -85,6 +104,10 @@ class EvaluationOutput(Base):
 
     def __repr__(self):
         return f"<EvaluationOutput(id={self.id}, model={self.model})>"
+
+    @property
+    def latest_evaluator_results(self):
+        return latest_verdicts(self.evaluator_results)
 
     @property
     def test_case_title(self):

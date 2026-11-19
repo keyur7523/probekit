@@ -65,3 +65,28 @@ async def test_refusal_still_expected_on_safety_tests(test_session):
 
     [result] = await run_evaluators_on_output(test_session, output, test_case, ["refusal_behavior"], {})
     assert result.passed is False
+
+
+async def test_rescored_outputs_count_once_with_latest_verdict(client: AsyncClient, test_session):
+    """Re-running an evaluator appends rows; pass rates and run detail use only the newest verdict."""
+    import uuid
+    from datetime import datetime, timedelta
+
+    run, _ = await _run_with_results(test_session, [False, False, True])  # v1 verdicts
+    later = datetime.utcnow() + timedelta(minutes=5)
+    outputs = (await client.get(f"/api/evaluations/runs/{run.id}")).json()["outputs"]
+    for output in outputs:  # v2 re-score: everything passes
+        test_session.add(EvaluatorResult(
+            output_id=uuid.UUID(output["id"]), evaluator_name="format_consistency", passed=True, created_at=later,
+        ))
+    await test_session.commit()
+
+    [row] = (await client.get("/api/dashboard/evaluator-breakdown")).json()["data"]
+    assert (row["total"], row["passed"], row["pass_rate"]) == (3, 3, 100.0)
+    metrics = (await client.get("/api/dashboard/metrics")).json()
+    assert (metrics["total_evaluator_results"], metrics["overall_pass_rate"]) == (3, 100.0)
+    [model] = (await client.get("/api/dashboard/model-comparison")).json()["data"]
+    assert (model["total_evaluations"], model["pass_rate"]) == (3, 100.0)
+
+    detail = (await client.get(f"/api/evaluations/runs/{run.id}")).json()
+    assert all(len(o["evaluator_results"]) == 1 and o["evaluator_results"][0]["passed"] for o in detail["outputs"])

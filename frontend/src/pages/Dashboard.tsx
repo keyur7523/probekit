@@ -59,7 +59,8 @@ function StatusBadge({ passRate }: { passRate: number }) {
 
 export default function Dashboard() {
   const [modelMetric, setModelMetric] = useState<'pass_rate' | 'avg_latency_ms' | 'avg_cost_usd'>('pass_rate')
-  const [trendDays, setTrendDays] = useState(30)
+  // Wide default so a quiet month doesn't leave the chart empty (backend allows up to 180)
+  const [trendDays, setTrendDays] = useState(90)
 
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ['dashboard-metrics'],
@@ -149,6 +150,8 @@ export default function Dashboard() {
               <option value={14}>Last 14 days</option>
               <option value={30}>Last 30 days</option>
               <option value={60}>Last 60 days</option>
+              <option value={90}>Last 90 days</option>
+              <option value={180}>Last 180 days</option>
             </select>
           </div>
           <ScoreTrendsChart data={trends?.data || []} />

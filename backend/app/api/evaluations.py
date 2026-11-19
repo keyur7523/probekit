@@ -184,7 +184,7 @@ async def get_evaluation_run(
     def count_passes(r: EvaluationRun) -> dict[str, dict[str, int]]:
         counts: dict[str, dict[str, int]] = {}
         for output in r.outputs:
-            for result in output.evaluator_results:
+            for result in output.latest_evaluator_results:
                 if result.passed is None:  # not applicable: excluded from pass rates
                     continue
                 entry = counts.setdefault(result.evaluator_name, {'passed': 0, 'total': 0})
